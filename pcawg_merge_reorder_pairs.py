@@ -12,8 +12,41 @@ from collections import defaultdict
 merge_file = sys.argv[1]
 pid = sys.argv[2]
 
-#print "reorder merged SV calls"
-slop=500.0
+# TODO: Why are different slop values being used (400 vs 500?
+slop=500.0 
+'''
+This might be unnecessary but writing out all the column indices so I don't have to keep scrolling below
+0: chrom1_SV1
+1: pos1_SV1
+2: chrom2_SV1
+3: pos2_SV1
+4: name_SV1
+5: score_SV1
+6: strand1_SV1
+7: strand2_SV1
+8: svtype_SV1
+9: center_SV1
+10: idSV1
+11: chrom1_SV2
+12: pos1_SV2
+13: chrom2_SV2
+14: pos2_SV2
+15: name_SV2
+16: score_SV2
+17: strand1_SV2
+18: strand2_SV2
+19: svtype_SV2
+20: center_SV2
+21: idSV2
+22: pid
+23: interSect
+24: BpOffset
+25: svOverlapType
+26: callerPair
+27: rn_share_count
+28: rn_share_fract
+'''
+
 header = ["chrom1_SV1", "pos1_SV1", "chrom2_SV1", "pos2_SV1", "name_SV1", "score_SV1", "strand1_SV1", "strand2_SV1", "svtype_SV1", "center_SV1", "idSV1", "chrom1_SV2", "pos1_SV2", "chrom2_SV2", "pos2_SV2", "name_SV2", "score_SV2", "strand1_SV2", "strand2_SV2", "svtype_SV2", "center_SV2", "idSV2", "pid", "interSect", "BpOffset", "svOverlapType", "callerPair", "rn_share_count", "rn_share_fract"]
 
 print ('\t'.join(map(str, header)))
@@ -22,7 +55,7 @@ print ('\t'.join(map(str, header)))
 old_limit = csv.field_size_limit()
 csv.field_size_limit(13107200)
 
-
+# Annotating below is hard without having a simple input file
 
 with open(merge_file, "r") as rin:
     reader = csv.reader(rin, delimiter="\t", quoting=csv.QUOTE_NONE)
