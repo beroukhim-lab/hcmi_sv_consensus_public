@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Original code: pcawg6_sv_merge_master.sh <run_id> <dranger_symlink> <snowman_symlink> <brass_symlink> <delly_symlink>
-#Test
+
 # Possible new code: optimizing_sv_consensus.sh <run_id> <output_directory> <[bedpe_file_path_array]>
 # In our case, people are providing a varying number of bedpe files (for diff projects) and they could be created from various callers
 # Let's change the code so that the bedpe files are passed as an array and the last argument so this is dynamic
