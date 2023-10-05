@@ -1,0 +1,146 @@
+a9d1b074-7f36-4a04-b270-a2061249ff20	'DUPs: 37904 out of 41348 with 37270 having a size smaller than 5e3, high number of false translocations remain'
+19406c86-dd55-420c-b6d4-b5ca9d3bfed6 	'high number of DEL and TRA'
+f3aa0d5f-2ba1-48af-ba95-f1c99d2c96af	'DEL AND DUP artefact'
+8df1eeb4-dfc9-4a0a-8f93-98460c3ab489
+ab7587eb-1bc2-43f9-b46f-9d0fa70bfbc1
+09666d5a-874c-432a-952e-76721a2af4be
+6363fb0e-5f9e-4e46-8358-93806df99e78
+1b658e7e-ddf3-4d42-9bc6-b005ea0013e1
+f7aa3437-682a-456b-95dc-91de9d30eb75
+19406c86-dd55-420c-b6d4-b5ca9d3bfed6
+97fe452e-fc8e-4935-895d-ade616cd646e
+d7f1db09-8ba0-4b76-bcd2-01c14165f0d5
+4b066ffa-bf77-48dd-9932-857bff63091a
+ac66ef9c-c350-4424-aec2-c4d5c0b1954a
+39cb041f-e668-4c68-9386-73191fd6260f
+97ccf5d4-b285-40ca-b5b1-4f7d35d64516
+4edcdcec-f837-4620-8e02-5f638ce21e6c
+69a62b04-1795-438f-8dca-518e11c9d2d4
+5f60b0a0-03cc-4923-a7f3-d16e101a0876
+0c7af04b-e171-47c4-8be5-5db33f20148e
+40a609bb-2c8f-4146-83c4-e7b0d1b23619
+cab2ed1c-b8a3-471c-92b6-0fe54753926c
+10bc2704-6cef-4d1b-83ac-4804544765ea
+160b3dff-da2b-4099-b826-be4128e316a8
+9a3c3edb-82fa-4b4e-aa85-a4298362d99a
+3e6f03d3-23f2-437e-a735-4a18f89ccfa0
+aaf0e1b2-4a3b-4a5f-a0f6-2c434b174bcf
+919560b7-9e45-45b9-a689-2514f2ec0a34
+4aaae9d8-0693-4901-816e-aaeb8d3ecfaa
+6c68f466-273a-48e3-ba6e-e2f2bcc07c73
+fc9508bd-4481-ba01-e040-11ac0d480975
+fa40b7ea-63b5-45a7-a434-0d4f50b58d49
+8489389f-960e-45c5-9eb6-4accf84b0d68
+a78b5788-67ea-4275-931c-421bf76c5a4c
+03deff56-b3b4-4d3d-94df-b2db40aacb64
+798bd17b-69b7-40d7-92ff-7c2389edcccf
+d198e753-28a3-4d1c-b005-64b48306fa60
+de48affa-f74a-4cc6-90ae-35a2d49e2a98
+6920fd0a-82bb-43a4-bc78-c29c42961148
+baa0e98e-99a1-47c7-96af-d9dc7c258bd8
+168b7204-c623-11e3-bf01-24c6515278c0
+f339a163-c9dd-437f-9841-46b89e06df4e
+eef9dce1-6ba6-432b-bbe2-53c7dbe64fe7
+68b283d3-d8d3-498d-b3d5-5d461f6d00e3
+aced586c-c622-11e3-bf01-24c6515278c0
+fce88721-c92b-48eb-a79f-7132809b456e	tumor-normal swap
+683eccb4−c622−11e3−bf01−24c6515278c0	inversion artefact
+fc876eec-10b9-11c7-e040-11ac0d4850fb	official_blacklist
+fc956873-e547-8d4b-e040-11ac0c48224f	official_blacklist
+fc95a408-2502-7b55-e040-11ac0c48461a	official_blacklist
+fc99c613-51c2-8b47-e040-11ac0d480d34	official_blacklist
+f82d2154-d0dc-2b27-e040-11ac0c48688a	official_blacklist
+fc970467-ae01-4a8f-e040-11ac0c48163b	official_blacklist
+fc991b60-15dd-cadb-e040-11ac0c48523b	official_blacklist
+fc992ff1-43ad-e8be-e040-11ac0c485cb5	official_blacklist
+fc8130df-68fd-76ee-e040-11ac0d485df6	official_blacklist
+fc9da5a5-a709-5ea9-e040-11ac0c487cf0	official_blacklist
+fefe6b55-ba57-4829-bfd7-61cf7bf1f559	official_blacklist
+ccdb02a1-d048-43fb-80cd-829f616b4434	official_blacklist
+dac3b2c3-fbf4-4602-94d9-b5051d454a3b	official_blacklist
+d16eff05-3098-41ee-85a7-9f56fd927509	official_blacklist
+f8f13b7f-262e-696a-e040-11ac0d483093	official_blacklist
+f935c981-4aef-d6a4-e040-11ac0c481062	official_blacklist
+18dd42d7-2d84-400e-9adb-a38faa916a9e	official_blacklist
+9c817737-a97c-49f8-8858-f416a35f5abb	official_blacklist
+1368120d-c747-4778-a01a-289505a0c18a	official_blacklist
+188f9a26-7143-415b-b02d-74055fa23d6d	official_blacklist
+a3fd2ee0-3dd0-4992-9a9f-75e487b43441	official_blacklist
+bada0a2b-88cc-4f38-9be5-f4b698ae4db1	official_blacklist
+0394f4b0-a732-458a-b75a-180a778553e4	official_blacklist
+08c66839-f40c-4e38-8c49-10a963cc350f	official_blacklist
+5f3d1f46-26bd-4f17-a748-dba49de28019	official_blacklist
+448eb0b1-916c-4a71-a0af-926c3935405b	official_blacklist
+8075a848-671d-4de3-9c0e-9a86251a5e93	official_blacklist
+0d5a3e47-4cfd-43b3-b593-e895a5df70f4	official_blacklist
+256c854b-e247-40dc-aa06-c99359a0b310	official_blacklist
+2bcd56a1-1367-4b97-8f35-eceb3dce2e4d	official_blacklist
+88e6d314-8576-444a-af19-811f8fa44c90	official_blacklist
+7a27cf8c-6993-4e70-88eb-867073453891	official_blacklist
+ccdc0b99-43b9-465c-97cc-199fa22b7d06	official_blacklist
+8c7bac04-9796-4fbf-9340-41e5a993ef09	official_blacklist
+bd80821b-408f-43b2-961d-f09bbb12d7f6	official_blacklist
+fc2d6c31-dadb-45cb-9053-c87f535a77a5	official_blacklist
+fbd902c3-f657-4b96-86d4-d70f2d92f5e2	official_blacklist
+c38b6898-c622-11e3-bf01-24c6515278c0	official_blacklist
+f755e9b4-c622-11e3-bf01-24c6515278c0	official_blacklist
+051fc880-c623-11e3-bf01-24c6515278c0	official_blacklist
+2a97498a-c623-11e3-bf01-24c6515278c0	official_blacklist
+45d6c95a-c623-11e3-bf01-24c6515278c0	official_blacklist
+b710996c-8d35-4a2c-bc51-389b3e35b0f3	official_blacklist
+d17eda6c-b986-4ba3-b0e9-bac7a751c26a	official_blacklist
+11f505fa-9306-468a-bbcd-d278892da83f	official_blacklist
+7692e684-4af2-4892-80ad-1f417b6b38fa	official_blacklist
+18d41839-076c-475a-8a20-d51921133fa3	official_blacklist
+2087f284-ddc9-4239-9ec6-b1b8b5a8474f	official_blacklist
+8da81c05-9cf2-435f-a67a-9cf15a96a2ca	official_blacklist
+a2f38e9e-48b2-4463-b2e3-61cc8475257f	official_blacklist
+ba577913-356c-4488-8f9d-c45778e7b9e1	official_blacklist
+9f335cd1-2736-41be-a02b-cdbe4017bb3d	official_blacklist
+394c1907-a040-4fcb-8e49-545c715e711d	official_blacklist
+c42c8cf4-4c91-4b0c-9903-3951d6f1a2b7	official_blacklist
+3a2eb1b9-d959-444a-9453-25f44c1f26cd	official_blacklist
+8c399a6e-05b9-4ca6-a05e-61e9f373add7	official_blacklist
+92f4a95a-d2af-49f0-9274-0983321ba5b5	official_blacklist
+4e1b8e31-3775-4361-bbb4-425b1dfffa27	official_blacklist
+6af78566-d042-4c5c-8622-c90710cce64c	official_blacklist
+8151834d-1cc1-4c17-b55e-a7c817529ff9	official_blacklist
+cfbd0ac4-69fb-4031-8cfc-d8d0884e5782	official_blacklist
+329a13b0-cfc9-470d-9703-3d2a845c0373	official_blacklist
+577f1ca0-ef1e-4976-b067-910bd4e8a761	official_blacklist
+f02212df-2f5a-4093-bfaf-4a8403d26629	official_blacklist
+ff023c8f-1a23-49d2-b0a0-d9a322cd063a	official_blacklist
+06f9e2e2-3427-4b09-92b9-dcb54d03e59c	official_blacklist
+f12d987e-b2ca-40da-97e3-1cc324e7cb23	official_blacklist
+04bd4230-3a2f-41f4-8e24-1ff79d2575a0	official_blacklist
+e976cd1d-82b2-4b7a-9fa5-86817aedfef0	official_blacklist
+47d90eeb-b8b7-408f-ad82-4aa56c0d563b	official_blacklist
+400b4d20-7a23-49a1-aba1-eeecb35b1b2a	official_blacklist
+7287d952-3963-49c8-94ae-b046772fff68	official_blacklist
+fd201154-d55b-4be0-a458-2eb92a9f2fe8	official_blacklist
+4c6d5765-f6e2-42ca-b673-32ca03523035	official_blacklist
+3508a48a-b51a-4c61-9b7f-e9733625aac6	official_blacklist
+bc4ddc32-73af-4b79-a8e9-6f2f01274276	official_blacklist
+ef6c8783-fdf1-4014-9fbc-faa0dd7ea463	official_blacklist
+139c9b8c-3f0c-49fd-8b5a-c06d65aa02b6	official_blacklist
+c1f9d908-9b11-4700-a19b-73ca59c8017e	official_blacklist
+f4651512-3700-4a89-854f-726ea53a2ea1	official_blacklist
+58891151-82b7-497c-aaaa-5707bfdf32b8	official_blacklist
+097a024e-a4fd-486c-b165-d3adf50ac96a	official_blacklist
+272f4b9d-0ecc-4046-a68d-3918520612b8	official_blacklist
+de999a11-7a73-4907-957d-e11e0d265171	official_blacklist
+73a91624-ae27-4ca7-a522-90e39fa2a064	official_blacklist
+e26e35d3-d7f0-40e4-9904-39daa4c43865	official_blacklist
+2127b79b-3f38-4aed-89cb-7c4fce71b118	official_blacklist
+95785e54-e402-4f77-87ce-62ed290dc93b	official_blacklist
+8afbee81-bd13-4f19-969c-2746878ea67b	official_blacklist
+0bfe2ac9-0af1-c248-e050-11ac0d487e1c	official_blacklist
+7f1ca00a-84ba-4b26-a1a5-4d83c363ac69	official_blacklist
+558cb14a-a3b9-488d-ae53-3ef2e215c786	official_blacklist
+812a2495-874b-4fbd-89da-bf3801ab9a34	official_blacklist
+1158714d-4714-45f9-8557-3cd98165e769	official_blacklist
+1c7bc5f2-1b4d-48c8-a3a6-47db19118ffb	official_blacklist
+ff2226b5-5b99-4b73-a6f0-881bb22ef4c7	official_blacklist
+ab39aec4-002b-4ed7-b1fe-09e420210145	official_blacklist
+788fbfaa-51bf-42a4-afa6-5b87ed04c2d5	official_blacklist
+7ed3e66e-f784-483f-ac37-1300736584a4	official_blacklist

@@ -1,0 +1,5 @@
+log file for running sv_consensus on HCMI-SAMPLE-NAME
+date +%y%m%d
+Files will be output to .
+Bedpe file number 1 in the array is path1
+Caller number 1 is named name1
