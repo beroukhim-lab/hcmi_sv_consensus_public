@@ -1,0 +1,11 @@
+Log file for running SV consensus on HCM-BROD-0002-C71-85A
+2023-10-24
+Files will be output to ./test_output_HCM-BROAD-0002
+Bedpe file number 1 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_mskcc.bedpe
+Bedpe file number 2 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_nygc.bedpe
+Bedpe file number 3 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_purple.bedpe
+Caller number 1 is named mskcc
+Caller number 2 is named nygc
+Caller number 3 is named washu
+
+./test_output_HCM-BROAD-0002/sortedMasterSvList.bed

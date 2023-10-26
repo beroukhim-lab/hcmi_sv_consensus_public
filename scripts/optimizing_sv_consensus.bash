@@ -60,25 +60,31 @@ log_file=${output_directory}/${aliquot_id}.log
 
 #Make a log file
 # touch $aliquot_id.log
-echo "log file for running sv_consensus on $aliquot_id" >> $log_file #Add the sample name to the log file
-echo date +"%y%m%d" >> $log_file #Add the date to the log file
+echo "Log file for running SV consensus on $aliquot_id" >> $log_file #Add the sample name to the log file
+echo $(date '+%Y-%m-%d') >> $log_file #Add the date to the log file
 
 #Echo the information and add to the log file
 echo "Files will be output to $output_directory" | tee -a $log_file #Add the output directory to the log file
 
 #Print all of the input paths and add to the log file
-i=1
-for file in $input_array; do
-    echo "Bedpe file number $i in the array is $file" | tee -a $log_file 
-    i=i+1
+counter1=1
+for file in "${bedpe_files[@]}"; do
+    echo "Bedpe file number $counter1 in the array is $file" | tee -a $log_file 
+    let counter1++
 done
 
 #Print all of the caller names and add to the log file
-i=1
-for caller in $caller_name_array; do
-    echo "Caller number $i is named $caller" | tee -a $log_file
-    i=i+1
+counter2=1
+for caller in "${caller_name_array[@]}"; do
+    echo "Caller number $counter2 is named $caller" | tee -a $log_file
+    let counter2++
 done
+
+if [ $counter1 -ne $counter2 ]; then
+    echo "The number of components in -i and -n parameters must be equal" >&2
+    exit 1
+fi
+
 
 # TODO: Figure out relevance of the below variables/files and edit to not hardcode later (we can create paths in github repo)
 VARIANT_DIR="${output_directory}/sv_call_concordance" #This appears to be just an output directory that will be created later?
@@ -97,7 +103,7 @@ BLACKLIST_TE_BEDPE="${BLACKLIST_DIR}/pcawg6_blacklist_TE_pseudogene.bedpe.gz" #A
 BLACKLIST_TE_INS="${BLACKLIST_DIR}/pcawg6_blacklist_TE_pseudogene_insertion.txt.gz" #A path to a blacklist file (to be used later in this script?)
 BLACKLIST_ALIQUOT_ID="${BLACKLIST_DIR}/blacklist_aliquot_id.txt" #A path to a blacklist file (to be used later in this script?)
 BLACKLIST_FOLDBACK="${BLACKLIST_DIR}/pcawg6_blacklist_foldback_artefacts.slop.bedpe.gz" #A path to a blacklist file (to be used later in this script?)
-BLACKLIST_ALIQUOT_DIR="${output_dir}/blacklisted" #A path to a directory that will be created later?
+BLACKLIST_ALIQUOT_DIR="${output_directory}/blacklisted" #A path to a directory that will be created later?
 #Ah, yes. Such premonition. If the blacklist directory doesn't exist, then make it.
 if [[ ! -d ${BLACKLIST_ALIQUOT_DIR} ]]
 then
@@ -114,22 +120,32 @@ echo -e "\n## 2)\tCOMBINE BEDPE SV CALLS\n" # Print the status to the terminal
 
 # Variable definition
 # It looks like the bedpe_header they were using versus ours will be different -_- (fingers crossed this works)
-bedpe_header="chrom1\tstart1\tend1\tchrom2\tstart2\tend2\tsv_id\tpe_support\tstrand1\tstrand2\tsvclass\tsvmethod"
+# bedpe_header="chrom1\tstart1\tend1\tchrom2\tstart2\tend2\tsv_id\tpe_support\tstrand1\tstrand2\tsvclass\tsvmethod"
 # bedpe_header="chrom1\tstart1\tend1\tchrom2\tstart2\tend2\tname\tqual\tstrand1\tstrand2\tsv_class\tsv_type\tscore\tsupp_reads\tscna\tcenter\tread_id" # Header 
-SV_MASTER=${output_directory}/masterSvList.bed # Master file path
-# umask 002
-# touch ${SV_MASTER}
-echo $bedpe_header > $SV_MASTER # Add the header that we defined into the master file
+SV_ORIG=${output_directory}/origMasterSvList.bed # Master file path
+SV_MASTER=${output_directory}/sortedMasterSvList.bed # Master file path
+umask 002
+touch ${SV_MASTER}
 
 # Since we have a variable number of bedpe files, let's just append them all at once
-for file in $bedpe_files
-do
+i=1
+for file in "${bedpe_files[@]}"; do
     echo $file
-    cat $file >> $SV_MASTER
+    # sed 's/chr//g' $file > $file
+    if [ $i -ne 1 ]
+    then
+        tail -n +2 $file >> $SV_ORIG
+        let i++
+    else
+        cat $file >> $SV_ORIG
+        let i++
+    fi
 done
 
+sed '2,$s/chr//g' $SV_ORIG > $SV_MASTER
+
 # Sort, save unique lines, remove header (which contains chrom1 string), and save updated file
-$SV_MASTER | sort -k1,1V | uniq | grep -v chrom1 >> $SV_MASTER
+sort -k1,1V $SV_MASTER | uniq | grep -v chrom1 >> $SV_MASTER
 
 # Update log file
 echo -e "\n$SV_MASTER" | tee -a $log_file
@@ -143,7 +159,7 @@ exit 0
 
 # Variable definition
 SLOP = 400 # Number of base pairs of slop for combining SV breakpoint ends (e.g. callers may call the same sv breakpoint, but be a few bp off because of the algorithm)
-PAIR2PAIR = ${SAMPLE_DIR}/pair2pair_SV_merging.bed # Output file path
+PAIR2PAIR = ${output_directory}/pair2pair_SV_merging.bed # Output file path
 echo -n "" > $PAIR2PAIR # Create empty file
 
 # Since we have a variable number of bedpe files, let's just append them all at once
@@ -151,9 +167,8 @@ echo -n "" > $PAIR2PAIR # Create empty file
 ## -slop = amount of extra space
 ## -rdn = require hits to have diff names
 ## -a and -b = input bedpe files; -a = master, -b = institution
-for file in bedpe_files
-do
-    pairToPair -slop $SLOP -rdn -a <(cut -f -19 ${SV_MASTER}) -b <(cut -f -19 $bed | awk -v aliquot_id=$aliquot_id)   '{print $0"\t"aliquot_id}' ) >> $PAIR2PAIR
+for file in "${bedpe_files[@]}"; do
+    pairToPair -slop $SLOP -rdn -a <(cut -f -19 ${SV_MASTER}) -b <(cut -f -19 $file | awk -v aliquot_id=$aliquot_id)   '{print $0"\t"aliquot_id}' ) >> $PAIR2PAIR
 done
 
 #####################################################################
