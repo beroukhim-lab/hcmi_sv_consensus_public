@@ -150,7 +150,7 @@ sort -k1,1V $SV_MASTER | uniq | grep -v chrom1 >> $SV_MASTER
 # Update log file
 echo -e "\n$SV_MASTER" | tee -a $log_file
 
-exit 0
+# exit 0
 
 #####################################################################
 # Pair SVs and find overlaps between bedpe files
