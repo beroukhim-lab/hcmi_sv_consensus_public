@@ -158,8 +158,8 @@ echo -e "\n$SV_MASTER" | tee -a $log_file
 #####################################################################
 
 # Variable definition
-SLOP = 400 # Number of base pairs of slop for combining SV breakpoint ends (e.g. callers may call the same sv breakpoint, but be a few bp off because of the algorithm)
-PAIR2PAIR = ${output_directory}/pair2pair_SV_merging.bed # Output file path
+SLOP=400 # Number of base pairs of slop for combining SV breakpoint ends (e.g. callers may call the same sv breakpoint, but be a few bp off because of the algorithm)
+PAIR2PAIR=${output_directory}/pair2pair_SV_merging.bed # Output file path
 echo -n "" > $PAIR2PAIR # Create empty file
 
 # Since we have a variable number of bedpe files, let's just append them all at once
@@ -167,17 +167,24 @@ echo -n "" > $PAIR2PAIR # Create empty file
 ## -slop = amount of extra space
 ## -rdn = require hits to have diff names
 ## -a and -b = input bedpe files; -a = master, -b = institution
+
 for file in "${bedpe_files[@]}"; do
-    pairToPair -slop $SLOP -rdn -a <(cut -f -19 ${SV_MASTER}) -b <(cut -f -19 $file | awk -v aliquot_id=$aliquot_id)   '{print $0"\t"aliquot_id}' ) >> $PAIR2PAIR
+
+    #bedtools2/bin/pairToPair -slop $SLOP -rdn -a <(cut -f -19 ${SV_MASTER}) -b <(cut -f -19 $file | awk -v aliquot_id=$aliquot_id) '{print $0"\t"aliquot_id}')  >> $PAIR2PAIR #OG
+    bedtools2/bin/pairToPair -slop "$SLOP" -rdn -a <(cut -f -19 "$SV_MASTER") -b <(cut -f -19 "$file" | awk -v aliquot_id="$aliquot_id" '{print $0"\t"aliquot_id}')  >> "$PAIR2PAIR" #Not OG
+
 done
+
+
+
 
 #####################################################################
 # Make SV overlap for each SV in pair2pair
 # Prepare special data frame format to load into graph algorithm
 #####################################################################
 
-inBEDPE=$SAMPLE_DIR/${aliquot_id}_SV_overlap.txt
-python ${CODE_DIR}/pcawg_merge_reorder_pairs.py $PAIR2PAIR $aliquot_id > ${inBEDPE}
+#inBEDPE=$SAMPLE_DIR/${aliquot_id}_SV_overlap.txt
+#python ${CODE_DIR}/pcawg_merge_reorder_pairs.py $PAIR2PAIR $aliquot_id > ${inBEDPE}
 
 # I'm finding that commenting the above python file is hard to do without understanding the input. 
 # Let's run everything before this step to test and make sure logic is working but also to be able to comment on the script
