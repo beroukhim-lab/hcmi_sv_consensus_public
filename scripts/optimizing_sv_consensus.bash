@@ -170,8 +170,13 @@ echo -n "" > $PAIR2PAIR # Create empty file
 
 for file in "${bedpe_files[@]}"; do
 
-    #bedtools2/bin/pairToPair -slop $SLOP -rdn -a <(cut -f -19 ${SV_MASTER}) -b <(cut -f -19 $file | awk -v aliquot_id=$aliquot_id) '{print $0"\t"aliquot_id}')  >> $PAIR2PAIR #OG
-    bedtools2/bin/pairToPair -slop "$SLOP" -rdn -a <(cut -f -19 "$SV_MASTER") -b <(cut -f -19 "$file" | awk -v aliquot_id="$aliquot_id" '{print $0"\t"aliquot_id}')  >> "$PAIR2PAIR" #Not OG
+    #bedtools2/bin/pairToPair -slop $SLOP -rdn -a <(cut -f -19 ${SV_MASTER}) -b <(cut -f -19 $file | awk -v aliquot_id=$aliquot_id) '{print $0"\t"aliquot_id}')  >> $PAIR2PAIR #OG, syntax error?
+    #Note: The new sed arguments in the line below will strip 'chr' from just the chrom1 and chrom2 columns
+    #We should probably just do that conversion immediately after loading the bedpe files, but right now I'm just trying to troubleshoot.
+    #bedtools2/bin/pairToPair -slop "$SLOP" -rdn -a <(cut -f -19 "$SV_MASTER") -b <(cut -f -19 "$file" | awk -v aliquot_id="$aliquot_id" '{print $0"\t"aliquot_id}' | sed -E $'s/(\t|^)chr/\t/g' | sed -E $'s/(\t|^)chrom1/\t/g' | sed -E $'s/(\t|^)chrom2/\t/g')  >> "$PAIR2PAIR" #Not OG
+
+    cut -f -19 | awk -v aliquot_id="$aliquot_id" '{print $0"\t"aliquot_id}' | sed 's/chr//g' | head
+    echo $file
 
 done
 
