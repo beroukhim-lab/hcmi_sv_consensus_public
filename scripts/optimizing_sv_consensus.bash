@@ -171,7 +171,7 @@ echo -n "" > $PAIR2PAIR # Create empty file
 for file in "${bedpe_files[@]}"; do
     #Hi Akansha, a note. If you set cut -f -# to include all of the columns it gives an error about something in one of the columns >=8.
     #I have not tried to figure it out yet, but now now this seems to be working.
-    #install bedtools with pip install bedtools
+    #I installed bedtools with pip install bedtools. I could not find a way to get pybedtools to work.
     pairToPair -slop $SLOP -rdn -a <(cut -f -7 ${SV_MASTER}) -b <(cut -f -7 $file | awk -v aliquot_id=$aliquot_id '{print $0"\t"aliquot_id}')  >> $PAIR2PAIR
 done
 
@@ -181,7 +181,9 @@ done
 #####################################################################
 
 inBEDPE=${output_directory}/${aliquot_id}_SV_overlap.txt
-python2 scripts/pcawg_merge_reorder_pairs.py $PAIR2PAIR $aliquot_id > ${inBEDPE}
+#python2 scripts/pcawg_merge_reorder_pairs.py $PAIR2PAIR $aliquot_id > ${inBEDPE}
+python2 scripts/pcawg_merge_reorder_pairs.py $PAIR2PAIR $aliquot_id #For troubleshooting
+
 
 # I'm finding that commenting the above python file is hard to do without understanding the input. 
 # Let's run everything before this step to test and make sure logic is working but also to be able to comment on the script
