@@ -131,7 +131,7 @@ touch ${SV_MASTER}
 i=1
 for file in "${bedpe_files[@]}"; do
     echo $file
-    # sed 's/chr//g' $file > $file
+    #sed 's/chr//g' $file > $file
     if [ $i -ne 1 ]
     then
         tail -n +2 $file >> $SV_ORIG
@@ -169,30 +169,23 @@ echo -n "" > $PAIR2PAIR # Create empty file
 ## -a and -b = input bedpe files; -a = master, -b = institution
 
 for file in "${bedpe_files[@]}"; do
-
-    #bedtools2/bin/pairToPair -slop $SLOP -rdn -a <(cut -f -19 ${SV_MASTER}) -b <(cut -f -19 $file | awk -v aliquot_id=$aliquot_id) '{print $0"\t"aliquot_id}')  >> $PAIR2PAIR #OG, syntax error?
-    #Note: The new sed arguments in the line below will strip 'chr' from just the chrom1 and chrom2 columns
-    #We should probably just do that conversion immediately after loading the bedpe files, but right now I'm just trying to troubleshoot.
-    #bedtools2/bin/pairToPair -slop "$SLOP" -rdn -a <(cut -f -19 "$SV_MASTER") -b <(cut -f -19 "$file" | awk -v aliquot_id="$aliquot_id" '{print $0"\t"aliquot_id}' | sed -E $'s/(\t|^)chr/\t/g' | sed -E $'s/(\t|^)chrom1/\t/g' | sed -E $'s/(\t|^)chrom2/\t/g')  >> "$PAIR2PAIR" #Not OG
-
-    cut -f -19 | awk -v aliquot_id="$aliquot_id" '{print $0"\t"aliquot_id}' | sed 's/chr//g' | head
-    echo $file
-
+    #Hi Akansha, a note. If you set cut -f -# to include all of the columns it gives an error about something in one of the columns >=8.
+    #I have not tried to figure it out yet, but now now this seems to be working.
+    pairToPair -slop $SLOP -rdn -a <(cut -f -7 ${SV_MASTER}) -b <(cut -f -7 $file | awk -v aliquot_id=$aliquot_id '{print $0"\t"aliquot_id}')  >> $PAIR2PAIR
 done
-
-
-
 
 #####################################################################
 # Make SV overlap for each SV in pair2pair
 # Prepare special data frame format to load into graph algorithm
 #####################################################################
 
-#inBEDPE=$SAMPLE_DIR/${aliquot_id}_SV_overlap.txt
-#python ${CODE_DIR}/pcawg_merge_reorder_pairs.py $PAIR2PAIR $aliquot_id > ${inBEDPE}
+inBEDPE=${output_directory}/${aliquot_id}_SV_overlap.txt
+python2 scripts/pcawg_merge_reorder_pairs.py $PAIR2PAIR $aliquot_id > ${inBEDPE}
 
 # I'm finding that commenting the above python file is hard to do without understanding the input. 
 # Let's run everything before this step to test and make sure logic is working but also to be able to comment on the script
+# Now it seems like the pairToPair output makes sense?
+# Running pcawg_merge_reorder_pairs.py fails silently and the output is just the file header (specified in the python script).
 
 
 

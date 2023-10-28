@@ -1,0 +1,1 @@
+chrom1_SV1	pos1_SV1	chrom2_SV1	pos2_SV1	name_SV1	score_SV1	strand1_SV1	strand2_SV1	svtype_SV1	center_SV1	idSV1	chrom1_SV2	pos1_SV2	chrom2_SV2	pos2_SV2	name_SV2	score_SV2	strand1_SV2	strand2_SV2	svtype_SV2	center_SV2	idSV2	pid	interSect	BpOffset	svOverlapType	callerPair	rn_share_count	rn_share_fract

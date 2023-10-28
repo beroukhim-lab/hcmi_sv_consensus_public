@@ -1,5 +1,19 @@
 Log file for running SV consensus on HCM-BROD-0002-C71-85A
-2023-10-26
+2023-10-28
+Files will be output to ./test_output_HCM-BROD-0002
+Bedpe file number 1 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_mskcc.bedpe
+Caller number 1 is named mskcc
+
+./test_output_HCM-BROD-0002/sortedMasterSvList.bed
+Log file for running SV consensus on HCM-BROD-0002-C71-85A
+2023-10-28
+Files will be output to ./test_output_HCM-BROD-0002
+Bedpe file number 1 in the array is /mnt/c/Users/misek/OneDrive/vscode/test/pcawg_sv_merge/1be81ade-7ad6-4e7e-90d0-f986b3fb0a25.broad-dRanger.20151023.somatic.sv.sv.bedpe_annoTmp.vcf.gz
+Caller number 1 is named test
+
+./test_output_HCM-BROD-0002/sortedMasterSvList.bed
+Log file for running SV consensus on HCM-BROD-0002-C71-85A
+2023-10-28
 Files will be output to ./test_output_HCM-BROD-0002
 Bedpe file number 1 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_mskcc.bedpe
 Bedpe file number 2 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_nygc.bedpe
@@ -10,7 +24,7 @@ Caller number 3 is named washu
 
 ./test_output_HCM-BROD-0002/sortedMasterSvList.bed
 Log file for running SV consensus on HCM-BROD-0002-C71-85A
-2023-10-26
+2023-10-28
 Files will be output to ./test_output_HCM-BROD-0002
 Bedpe file number 1 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_mskcc.bedpe
 Bedpe file number 2 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_nygc.bedpe
@@ -21,7 +35,7 @@ Caller number 3 is named washu
 
 ./test_output_HCM-BROD-0002/sortedMasterSvList.bed
 Log file for running SV consensus on HCM-BROD-0002-C71-85A
-2023-10-26
+2023-10-28
 Files will be output to ./test_output_HCM-BROD-0002
 Bedpe file number 1 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_mskcc.bedpe
 Bedpe file number 2 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_nygc.bedpe
@@ -32,7 +46,7 @@ Caller number 3 is named washu
 
 ./test_output_HCM-BROD-0002/sortedMasterSvList.bed
 Log file for running SV consensus on HCM-BROD-0002-C71-85A
-2023-10-26
+2023-10-28
 Files will be output to ./test_output_HCM-BROD-0002
 Bedpe file number 1 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_mskcc.bedpe
 Bedpe file number 2 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_nygc.bedpe
@@ -43,7 +57,7 @@ Caller number 3 is named washu
 
 ./test_output_HCM-BROD-0002/sortedMasterSvList.bed
 Log file for running SV consensus on HCM-BROD-0002-C71-85A
-2023-10-26
+2023-10-28
 Files will be output to ./test_output_HCM-BROD-0002
 Bedpe file number 1 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_mskcc.bedpe
 Bedpe file number 2 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_nygc.bedpe
@@ -54,7 +68,7 @@ Caller number 3 is named washu
 
 ./test_output_HCM-BROD-0002/sortedMasterSvList.bed
 Log file for running SV consensus on HCM-BROD-0002-C71-85A
-2023-10-26
+2023-10-28
 Files will be output to ./test_output_HCM-BROD-0002
 Bedpe file number 1 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_mskcc.bedpe
 Bedpe file number 2 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_nygc.bedpe
@@ -65,7 +79,7 @@ Caller number 3 is named washu
 
 ./test_output_HCM-BROD-0002/sortedMasterSvList.bed
 Log file for running SV consensus on HCM-BROD-0002-C71-85A
-2023-10-26
+2023-10-28
 Files will be output to ./test_output_HCM-BROD-0002
 Bedpe file number 1 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_mskcc.bedpe
 Bedpe file number 2 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_nygc.bedpe
@@ -76,7 +90,7 @@ Caller number 3 is named washu
 
 ./test_output_HCM-BROD-0002/sortedMasterSvList.bed
 Log file for running SV consensus on HCM-BROD-0002-C71-85A
-2023-10-26
+2023-10-28
 Files will be output to ./test_output_HCM-BROD-0002
 Bedpe file number 1 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_mskcc.bedpe
 Bedpe file number 2 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_nygc.bedpe
@@ -87,7 +101,7 @@ Caller number 3 is named washu
 
 ./test_output_HCM-BROD-0002/sortedMasterSvList.bed
 Log file for running SV consensus on HCM-BROD-0002-C71-85A
-2023-10-26
+2023-10-28
 Files will be output to ./test_output_HCM-BROD-0002
 Bedpe file number 1 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_mskcc.bedpe
 Bedpe file number 2 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_nygc.bedpe
@@ -98,7 +112,7 @@ Caller number 3 is named washu
 
 ./test_output_HCM-BROD-0002/sortedMasterSvList.bed
 Log file for running SV consensus on HCM-BROD-0002-C71-85A
-2023-10-26
+2023-10-28
 Files will be output to ./test_output_HCM-BROD-0002
 Bedpe file number 1 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_mskcc.bedpe
 Bedpe file number 2 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_nygc.bedpe
@@ -109,7 +123,7 @@ Caller number 3 is named washu
 
 ./test_output_HCM-BROD-0002/sortedMasterSvList.bed
 Log file for running SV consensus on HCM-BROD-0002-C71-85A
-2023-10-26
+2023-10-28
 Files will be output to ./test_output_HCM-BROD-0002
 Bedpe file number 1 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_mskcc.bedpe
 Bedpe file number 2 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_nygc.bedpe
@@ -120,7 +134,7 @@ Caller number 3 is named washu
 
 ./test_output_HCM-BROD-0002/sortedMasterSvList.bed
 Log file for running SV consensus on HCM-BROD-0002-C71-85A
-2023-10-26
+2023-10-28
 Files will be output to ./test_output_HCM-BROD-0002
 Bedpe file number 1 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_mskcc.bedpe
 Bedpe file number 2 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_nygc.bedpe
@@ -131,7 +145,7 @@ Caller number 3 is named washu
 
 ./test_output_HCM-BROD-0002/sortedMasterSvList.bed
 Log file for running SV consensus on HCM-BROD-0002-C71-85A
-2023-10-26
+2023-10-28
 Files will be output to ./test_output_HCM-BROD-0002
 Bedpe file number 1 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_mskcc.bedpe
 Bedpe file number 2 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_nygc.bedpe
@@ -142,7 +156,7 @@ Caller number 3 is named washu
 
 ./test_output_HCM-BROD-0002/sortedMasterSvList.bed
 Log file for running SV consensus on HCM-BROD-0002-C71-85A
-2023-10-26
+2023-10-28
 Files will be output to ./test_output_HCM-BROD-0002
 Bedpe file number 1 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_mskcc.bedpe
 Bedpe file number 2 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_nygc.bedpe
@@ -153,7 +167,7 @@ Caller number 3 is named washu
 
 ./test_output_HCM-BROD-0002/sortedMasterSvList.bed
 Log file for running SV consensus on HCM-BROD-0002-C71-85A
-2023-10-26
+2023-10-28
 Files will be output to ./test_output_HCM-BROD-0002
 Bedpe file number 1 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_mskcc.bedpe
 Bedpe file number 2 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_nygc.bedpe
@@ -164,7 +178,7 @@ Caller number 3 is named washu
 
 ./test_output_HCM-BROD-0002/sortedMasterSvList.bed
 Log file for running SV consensus on HCM-BROD-0002-C71-85A
-2023-10-26
+2023-10-28
 Files will be output to ./test_output_HCM-BROD-0002
 Bedpe file number 1 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_mskcc.bedpe
 Bedpe file number 2 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_nygc.bedpe
@@ -175,7 +189,29 @@ Caller number 3 is named washu
 
 ./test_output_HCM-BROD-0002/sortedMasterSvList.bed
 Log file for running SV consensus on HCM-BROD-0002-C71-85A
-2023-10-26
+2023-10-28
+Files will be output to ./test_output_HCM-BROD-0002
+Bedpe file number 1 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_mskcc.bedpe
+Bedpe file number 2 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_nygc.bedpe
+Bedpe file number 3 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_purple.bedpe
+Caller number 1 is named mskcc
+Caller number 2 is named nygc
+Caller number 3 is named washu
+
+./test_output_HCM-BROD-0002/sortedMasterSvList.bed
+Log file for running SV consensus on HCM-BROD-0002-C71-85A
+2023-10-28
+Files will be output to ./test_output_HCM-BROD-0002
+Bedpe file number 1 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_mskcc.bedpe
+Bedpe file number 2 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_nygc.bedpe
+Bedpe file number 3 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_purple.bedpe
+Caller number 1 is named mskcc
+Caller number 2 is named nygc
+Caller number 3 is named washu
+
+./test_output_HCM-BROD-0002/sortedMasterSvList.bed
+Log file for running SV consensus on HCM-BROD-0002-C71-85A
+2023-10-28
 Files will be output to ./test_output_HCM-BROD-0002
 Bedpe file number 1 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_mskcc.bedpe
 Bedpe file number 2 in the array is ./test_bedpe/HCM-BROD-0002-C71-85A_nygc.bedpe
