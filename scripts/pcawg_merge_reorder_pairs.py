@@ -44,7 +44,46 @@ This might be unnecessary but writing out all the column indices so I don't have
 
 ###The bedpe files from the original code should have the following headers:
 #bedpe_header="chrom1\tstart1\tend1\tchrom2\tstart2\tend2\tname\tqual\tstrand1\tstrand2\tsv_class\tsv_type\tscore\tsupp_reads\tscna\tcenter\tread_id"
+#I think that the original pair2pair output headers should be:
+'''
+0: chrom1 caller_1
+1: start1 caller_1
+2: end1 caller_1
+3: chrom2 caller_1
+4: start2 caller_1
+5: end2 caller_1
+6: name caller_1
+7: qual caller_1
+8: strand1 caller_1
+9: strand2 caller_1
+10: sv_class caller_1
+11: sv_type caller_1
+12: score caller_1
+13: supp_reads caller_1
+14: scna caller_1
+15: center caller_1
+16: read_id caller_1
+17: chrom1 caller_2
+18: start1 caller_2
+19: end1 caller_2
+20: chrom2 caller_2
+21: start2 caller_2
+22: end2 caller_2
+23: name caller_2
+24: qual caller_2
+25: strand1 caller_2
+26: strand2 caller_2
+27: sv_class caller_2
+28: sv_type caller_2
+29: score caller_2
+30: supp_reads caller_2
+31: scna caller_2
+32: center caller_2
+33: read_id caller_2
+34: sample_id
+'''
 
+#define the headers for the output file?
 header = ["chrom1_SV1", "pos1_SV1", "chrom2_SV1", "pos2_SV1", "name_SV1", "score_SV1", "strand1_SV1", "strand2_SV1", "svtype_SV1", "center_SV1", "idSV1", "chrom1_SV2", "pos1_SV2", "chrom2_SV2", "pos2_SV2", "name_SV2", "score_SV2", "strand1_SV2", "strand2_SV2", "svtype_SV2", "center_SV2", "idSV2", "pid", "interSect", "BpOffset", "svOverlapType", "callerPair", "rn_share_count", "rn_share_fract"]
 
 
@@ -67,11 +106,14 @@ with open(merge_file, "r") as rin:
             #rowadj = -1
 
         if row[-1] == pid: #Check if the value in the last column is equal to our specified sample id. When would this ever be false?
-            #center1 = row[15] #OG -- Is this equiv to row[7] in our bedpe?
-            center1 = row[7] #Added this for troubleshooting. The original code is the line above.
-            #center2 = row[32 + rowadj] #OG -- Is this equiv to row[14] in our bedpe?
-            center2 = row[14] #Added this for troubleshooting. The original code is line above.
-            centerset = '__'.join(map(str, sorted([row[6],row[23 + rowadj]]))) #Join two strings together. No idea what row[6] and row[23] are supposed to be...
+            #center1 = row[15] #OG -- I don't think we have a value for this in our bedpe, so let's just set it to the caller name for now
+            center1 = row[12] #Added this for troubleshooting. The original code is the line above.
+            #center2 = row[32 + rowadj] #OG -- I don't think we have a value for this in our bedpe, so let's just set it to the caller name for now
+            center2 = row[24] #Added this for troubleshooting. The original code is line above.
+            #centerset = '__'.join(map(str, sorted([row[6],row[23 + rowadj]]))) #OG
+            centerset = '__'.join(map(str, sorted([row[12],row[24]]))) #Updated
+
+            ####Stopped editing here
 
             if center1 != center2 and centerset not in center_seen: # not same caller
                 center_seen.add(centerset)
