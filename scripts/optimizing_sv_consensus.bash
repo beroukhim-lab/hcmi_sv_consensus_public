@@ -171,6 +171,7 @@ echo -n "" > $PAIR2PAIR # Create empty file
 for file in "${bedpe_files[@]}"; do
     #Hi Akansha, a note. If you set cut -f -# to include all of the columns it gives an error about something in one of the columns >=8.
     #I have not tried to figure it out yet, but now now this seems to be working.
+    #install bedtools with pip install bedtools
     pairToPair -slop $SLOP -rdn -a <(cut -f -7 ${SV_MASTER}) -b <(cut -f -7 $file | awk -v aliquot_id=$aliquot_id '{print $0"\t"aliquot_id}')  >> $PAIR2PAIR
 done
 
