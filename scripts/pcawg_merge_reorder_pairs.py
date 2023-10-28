@@ -42,7 +42,11 @@ This might be unnecessary but writing out all the column indices so I don't have
 28: rn_share_fract
 '''
 
+###The bedpe files from the original code should have the following headers:
+#bedpe_header="chrom1\tstart1\tend1\tchrom2\tstart2\tend2\tname\tqual\tstrand1\tstrand2\tsv_class\tsv_type\tscore\tsupp_reads\tscna\tcenter\tread_id"
+
 header = ["chrom1_SV1", "pos1_SV1", "chrom2_SV1", "pos2_SV1", "name_SV1", "score_SV1", "strand1_SV1", "strand2_SV1", "svtype_SV1", "center_SV1", "idSV1", "chrom1_SV2", "pos1_SV2", "chrom2_SV2", "pos2_SV2", "name_SV2", "score_SV2", "strand1_SV2", "strand2_SV2", "svtype_SV2", "center_SV2", "idSV2", "pid", "interSect", "BpOffset", "svOverlapType", "callerPair", "rn_share_count", "rn_share_fract"]
+
 
 print('\t'.join(map(str, header)))
 
@@ -59,13 +63,15 @@ with open(merge_file, "r") as rin:
 
     for row in reader:
 
-        if len(row) == 33:
-            rowadj = -1
+        #if len(row) == 33: #I don't know what this is supposed to be checking for, but I don't think we need it.
+            #rowadj = -1
 
-        if row[-1] == pid:
-            center1 = row[15]
-            center2 = row[32 + rowadj]
-            centerset = '__'.join(map(str, sorted([row[6],row[23 + rowadj]])))
+        if row[-1] == pid: #Check if the value in the last column is equal to our specified sample id. When would this ever be false?
+            #center1 = row[15] #OG -- Is this equiv to row[7] in our bedpe?
+            center1 = row[7] #Added this for troubleshooting. The original code is the line above.
+            #center2 = row[32 + rowadj] #OG -- Is this equiv to row[14] in our bedpe?
+            center2 = row[14] #Added this for troubleshooting. The original code is line above.
+            centerset = '__'.join(map(str, sorted([row[6],row[23 + rowadj]]))) #Join two strings together. No idea what row[6] and row[23] are supposed to be...
 
             if center1 != center2 and centerset not in center_seen: # not same caller
                 center_seen.add(centerset)
