@@ -152,6 +152,24 @@ echo -e "\n$SV_MASTER" | tee -a $log_file
 
 # exit 0
 
+
+################################
+#Add a "center" column to the bedpe. This will be necessary for merge_reorder_pairs.py because this script counts the number of times each center is seen.
+#I could not figure out how to prevent this code from adding a header each time it is run, so I added the 'cut -f -13' part to just trim it off. If you know how to do it, please modify :).
+
+i=0 #Counter to map the bedpe to the center name. I can't think of a more beautiful way to do this because my bash skills are tenuous at best.
+for file in "${bedpe_files[@]}"; do
+    
+    center=${caller_name_array[i]} #get the name of the center (from the input argument).
+    center_column_header="center" #specify the column header
+    awk -v val="$center" -v header="$center_column_header" 'BEGIN {OFS = "\t"} { if (FNR == 1) {print $0, header} else { $13 = val; print } }' "$file" | cut -f -13 > tmpfile && mv tmpfile "$file"
+
+    i=$((i+1)) #Update the counter.
+done
+
+
+
+
 #####################################################################
 # Pair SVs and find overlaps between bedpe files
 # Dependency: pybedtools pairToPair
@@ -170,7 +188,7 @@ echo -n "" > $PAIR2PAIR # Create empty file
 
 for file in "${bedpe_files[@]}"; do
     #I installed bedtools with pip install bedtools. I could not find a way to get pybedtools to work.
-    pairToPair -slop $SLOP -rdn -a <(cut -f -12 ${SV_MASTER}) -b <(cut -f -12 $file | awk -v aliquot_id=$aliquot_id '{print $0"\t"aliquot_id}')  >> $PAIR2PAIR
+    pairToPair -slop $SLOP -rdn -a <(cut -f -13 ${SV_MASTER}) -b <(cut -f -13 $file | awk -v aliquot_id=$aliquot_id '{print $0"\t"aliquot_id}')  >> $PAIR2PAIR
 done
 
 #####################################################################
