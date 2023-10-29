@@ -139,7 +139,7 @@ for H in networkx.connected_component_subgraphs(G):
     typeSet=set()
     sample=set()
     center=list()
-    for n, d in H.nodes_iter(data=True):
+    for n, d in H.nodes(data=True): ###I updated nodes_iter to nodes because the version of the python package I'm using changed nodes_iter -> nodes
         typeSet.add(d['SVtype'][0])
         sample.add(d['SVtype'][1])
         center.append(d['SVtype'][2])
@@ -168,7 +168,7 @@ for H in networkx.connected_component_subgraphs(G):
         nx.draw_networkx_edges(H,pos,edgelist=esmall,
                             width=2+4*weight,alpha=0.5,edge_color='b',style='dashed')
         plotGraph(H, baseName)
-    for n in H.nodes_iter(data=False):
+    for n in H.nodes(data=False): ###I updated nodes_iter to nodes because the version of the python package I'm using changed nodes_iter -> nodes
          compAssign[n]=conCompCount
          compMembers[conCompCount].append(n)
 
@@ -449,7 +449,6 @@ def generate_bedpe(a):
     svclass = re.sub(r'.*;SVCLASS=([A-Za-z0-9]*).*', r'\1', a[7])
     svmethod = re.sub(r'.*;SVMETHOD=([A-Za-z0-9_]*);.*', r'\1', a[7])
     return [chrom1, start1, end1, chrom2, start2, end2, name, score, strand1, strand2, svclass, svmethod]
-
 
 
 fopen = open('unresolved.txt', 'w')

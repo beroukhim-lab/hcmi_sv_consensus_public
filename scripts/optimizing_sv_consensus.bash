@@ -219,15 +219,21 @@ python2 scripts/pcawg_merge_reorder_pairs.py $PAIR2PAIR $aliquot_id > ${inBEDPE}
 # #####################################################################
 # #############	  Merge and get cliques of SVs 	    #################
 # #####################################################################
-# echo -e "\n## 3)\tMERGE SVs\n"
+echo -e "\n## 3)\tMERGE SVs\n"
 
-# outVCF=$ANALYSIS_DIR/${aliquot_id}.${call_stamp}.${today}.somatic.sv.vcf
+outVCF=${output_directory}/${aliquot_id}.somatic.sv.vcf #I changed this because we removed {today} and {call_stamp}
 
-# outSTAT=${outVCF/.vcf/.stat}
+outSTAT=${outVCF/.vcf/.stat}
 
-# cd ${SAMPLE_DIR}
+#cd ./test_bedpe #TODO: hard coded, update later.
 
-# python ${CODE_DIR}/pcawg6_sv_merge_graph.py -e ${inBEDPE} -o ${outVCF} -s ${outSTAT} -a $SANGER_ANNO_VCF -b $DELLY_ANNO_VCF -c $DRANGER_ANNO_VCF -d $SNOWMAN_ANNO_VCF | tee -a $log
+###########Should be working up to this point.
+########### TODO: Update this python script to accept the bedpe files as input.
+########### TODO: Fix hard coding in python script so that it accepts any number of bedpe files and isn't just looking for these specific ones
+########### Do we even need to have vcfs as input? The script says that they are optional arguments.
+
+#python2 scripts/pcawg6_sv_merge_graph.py -e ${inBEDPE} -o ${outVCF} -s ${outSTAT} -a $SANGER_ANNO_VCF -b $DELLY_ANNO_VCF -c $DRANGER_ANNO_VCF -d $SNOWMAN_ANNO_VCF | tee -a $log #OG versions
+python2 scripts/pcawg6_sv_merge_graph.py -e ${inBEDPE} -o ${outVCF} -s ${outSTAT} | tee -a $log
 
 
 
