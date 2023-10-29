@@ -145,10 +145,12 @@ with open(merge_file, "r") as rin:
 
                 ###
                 ###I'm not totally sure what the lines below this are supposed to be doing because I'm not sure what rn_SV1 should look like
-                ###Output is empty, so there is an issue somewhere
+                ###For now it seems like it's working...
                 ###
-                rn_SV1 = set([i.strip('/[12]').replace('-', ':') for i in row[6].split(',')]) #Do we need to do this? I think this may be specific for the pcawg bedpe read IDs. ###index updated
-                rn_SV2 = set([i.strip('/[12]').replace('-', ':') for i in row[19].split(',')]) #Do we need to do this? I think this may be specific for the pcawg bedpe read IDs.###index updated
+                #rn_SV1 = set([i.strip('/[12]').replace('-', ':') for i in row[6].split(',')]) #Do we need to do this? I think this may be specific for the pcawg bedpe read IDs. ###index updated
+                #rn_SV2 = set([i.strip('/[12]').replace('-', ':') for i in row[19].split(',')]) #Do we need to do this? I think this may be specific for the pcawg bedpe read IDs.###index updated
+                rn_SV1 = set(i for i in row[6])#Do we need to do this? I think this may be specific for the pcawg bedpe read IDs. ###index updated
+                rn_SV2 = set(i for i in row[19]) #Do we need to do this? I think this may be specific for the pcawg bedpe read IDs.###index updated
                 rn_union = rn_SV1.union(rn_SV2) 
                 rn_shared = rn_SV1.intersection(rn_SV2) 
                 rn_share_count = len(rn_shared) 

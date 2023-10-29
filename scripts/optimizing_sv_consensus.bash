@@ -197,8 +197,8 @@ done
 #####################################################################
 
 inBEDPE=${output_directory}/${aliquot_id}_SV_overlap.txt
-#python2 scripts/pcawg_merge_reorder_pairs.py $PAIR2PAIR $aliquot_id > ${inBEDPE}
-python2 scripts/pcawg_merge_reorder_pairs.py $PAIR2PAIR $aliquot_id #For troubleshooting
+python2 scripts/pcawg_merge_reorder_pairs.py $PAIR2PAIR $aliquot_id > ${inBEDPE}
+#python2 scripts/pcawg_merge_reorder_pairs.py $PAIR2PAIR $aliquot_id #For troubleshooting
 
 
 # I'm finding that commenting the above python file is hard to do without understanding the input. 
