@@ -204,10 +204,9 @@ python2 scripts/pcawg_merge_reorder_pairs.py $PAIR2PAIR $aliquot_id > ${inBEDPE}
 # I'm finding that commenting the above python file is hard to do without understanding the input. 
 # Let's run everything before this step to test and make sure logic is working but also to be able to comment on the script
 # Now it seems like the pairToPair output makes sense?
-# Running pcawg_merge_reorder_pairs.py fails silently and the output is just the file header (specified in the python script).
+#I think I also have pcawg_merge_reorder_pairs.py working
 
-
-
+###TODO: Need to double check the column headers vs column content in the output of pcawg_merge_reorder_pairs.py. I think some are incorrect (but this is a minor issue?)
 
 
 
