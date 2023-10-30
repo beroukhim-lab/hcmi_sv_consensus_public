@@ -64,7 +64,10 @@ parser.add_argument('-b', '--inVCF_DELLY', metavar='delly_in.vcf', required=Fals
 parser.add_argument('-c', '--inVCF_DRANGER', metavar='dranger_in.vcf', required=False, dest='inVCF_DRANGER', help='input vcf file (optional)')
 parser.add_argument('-d', '--inVCF_SNOWMAN', metavar='snowman_in.vcf', required=False, dest='inVCF_SNOWMAN', help='input vcf file (optional)')
 
+parser.add_argument('-z', '--inBEDPE_array', metavar='bedpe_array_in.bedpe', required=False, dest='inBEDPE_array', help='input array of bedpe files') #Load in the array of bedpe files
 parser.add_argument('-e', '--inBEDPE', metavar='overlap.bedpe', required=True, dest='inBEDPE', help='input overlap table (required)')
+
+
 # parser.add_argument('-u', '--unionDEL', metavar='uniondel.bed', required=False, dest='uDEL', help='union deletions merged calls (optional)')
 parser.add_argument('-s', '--stat', metavar='stat.bed', required=False, dest='outStat', help='output statistics (optional)')
 #parser.add_argument('-c', '--copynumberConcordance', metavar='0.5', required=True, dest='copyConc', help='required copynumber concordance (required)')
@@ -75,6 +78,22 @@ parser.add_argument('-p', '--plot', dest='plotSubgraph', action='store_true', de
 parser.add_argument('-o', '--outVCF', metavar='out.vcf', required=False, dest='outVCF', help='output vcf file (optional)')
 parser.add_argument('-y', '--priority', metavar='priority.txt', required=False, dest='inPrior', help='priority scores (optional)')
 args = parser.parse_args()
+
+
+#List all of the bedpe files in the array
+inBEDPE_array=args.inBEDPE_array
+def process_file_paths(file_paths):
+    file_path_array = file_paths.split(' ')
+    for path in file_path_array:
+        print("File path: %s" % path)
+
+if __name__ == "__main__":
+    file_paths = sys.argv[1:] # Get the file paths from the command-line arguments
+
+    # Call the function with the array of file paths as an argument
+    process_file_paths(inBEDPE_array)
+
+
 
 
 # Parse command-line parameters
@@ -93,6 +112,7 @@ if args.inPrior:
             priority[fields[0]] = float(fields[1])
 
 
+inBEDPE_array=args.inBEDPE_array
 inBEDPE = args.inBEDPE
 useTriangle = args.useTriangle
 plotSubgraph = args.plotSubgraph
@@ -260,6 +280,36 @@ def extract_vcf_rows(inVCF, mastermerge, header_concat, compAssign):
                     cliqid = compAssign.get(svid)
                     mastermerge[cliqid].append(row)
     return mastermerge, header_concat
+
+###Create a new function that should do the same thing as extract_vcf_rows, except by using a bedpe input
+base_directory = os.getcwd() #Hard coding this just to get it to work -- change later
+file_directory = "/mnt/c/Users/misek/OneDrive/vscode/sv_consensus/test_bedpe" #Hard coding this just to get it to work -- change later
+def extract_bedpe_rows(single_bedpe, mastermerge, header_concat, compAssign):
+
+    os.chdir(file_directory) #Hard coding this just to get it to work -- change later
+    bedpe_base_name = single_bedpe.rsplit('/', 1)[-1] #Extract just the file name from the file path
+
+    with open(bedpe_base_name) as rin:
+        for row in rin:
+            rinfos = dict()
+
+            if row[0].startswith("chrom1"):
+                header_concat.append(row)
+
+            else:
+                svid = row[6]
+
+                if svid in compAssign:
+                    cliqid = compAssign.get(svid)
+                    mastermerge[cliqid].append(row)
+
+    os.chdir(base_directory) #Hard coding this just to get it to work -- change later
+
+    return mastermerge, header_concat
+
+
+
+
 
 
 
@@ -429,12 +479,18 @@ def generate_vcf(cliqset, n):
     return (vcf1line, vcf2line)
 
 
+'''
 mastermerge = defaultdict(list)
 header_concat = list()
 for inVCF in inVCF_DELLY, inVCF_BRASS, inVCF_DRANGER, inVCF_SNOWMAN:
     mastermerge, header_concat = extract_vcf_rows(inVCF, mastermerge, header_concat, compAssign)
+'''
 
-
+#Try to do the same thing as in the extract_vcf_rows function, except with a bedpe input
+mastermerge = defaultdict(list)
+header_concat = list()
+for  single_bedpe in inBEDPE_array:
+    mastermerge, header_concat = extract_bedpe_rows(inBEDPE_array, mastermerge, header_concat, compAssign)
 
 
 def generate_bedpe(a):
@@ -555,11 +611,13 @@ print ("merged SVs into BEDPE format\n", bedpefileOut, "\n\n")
 ####################################################################################################
 # fileformat
 
+#####For now just comment this out. Do we even need to write a vcf output?
+'''
 merge_header = list()
-fileformat = ["##fileformat=VCFv4.1"]
-filedate = ["##fileDate=" + today]
-codesource = ["##pcawg6_sv_merge=brass(Sanger),delly(EMBL),dranger(Broad),snowman(Broad)"]
-genomeref = ["##reference=hs37d5,ftp://ftp.sanger.ac.uk/pub/project/PanCancer/"]
+fileformat = ["##fileformat=VCFv4.1"] #Edit this
+filedate = ["##fileDate=" + today] #Edit this
+codesource = ["##pcawg6_sv_merge=brass(Sanger),delly(EMBL),dranger(Broad),snowman(Broad)"] #Edit this  
+genomeref = ["##reference=hs37d5,ftp://ftp.sanger.ac.uk/pub/project/PanCancer/"] #Edit this
 merge_header += [fileformat]
 merge_header += [filedate]
 merge_header += [genomeref]
@@ -657,3 +715,4 @@ if vcflines_filter:
     write_vcf(outVCF, vcflines_filter)
 else:
     write_vcf(outVCF, vcflines)
+'''

@@ -230,10 +230,10 @@ outSTAT=${outVCF/.vcf/.stat}
 ###########Should be working up to this point.
 ########### TODO: Update this python script to accept the bedpe files as input.
 ########### TODO: Fix hard coding in python script so that it accepts any number of bedpe files and isn't just looking for these specific ones
-########### Do we even need to have vcfs as input? The script says that they are optional arguments.
 
 #python2 scripts/pcawg6_sv_merge_graph.py -e ${inBEDPE} -o ${outVCF} -s ${outSTAT} -a $SANGER_ANNO_VCF -b $DELLY_ANNO_VCF -c $DRANGER_ANNO_VCF -d $SNOWMAN_ANNO_VCF | tee -a $log #OG versions
-python2 scripts/pcawg6_sv_merge_graph.py -e ${inBEDPE} -o ${outVCF} -s ${outSTAT} | tee -a $log
+bedpe_python_input_array=$(IFS=" " ; echo "${bedpe_files[@]}") #Convert the array of bedpe files to a space-separated string to make it easier to use as a python argument
+python2 scripts/pcawg6_sv_merge_graph.py -e ${inBEDPE} -z "$bedpe_python_input_array" -o ${outVCF} -s ${outSTAT} | tee -a $log
 
 
 
