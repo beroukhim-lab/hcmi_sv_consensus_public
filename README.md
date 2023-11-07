@@ -13,8 +13,18 @@ Step 2: pcawg6_sv_merge_master.sh (now called optimizing_sv_consensus.bash)
 
 
 # Dependencies
-pybedtools (pairToPair): https://daler.github.io/pybedtools/autodocs/pybedtools.bedtool.BedTool.pair_to_pair.html
-- Pretty sure original bedTools doesn't include -slop tag, so we need this version
+bedtools (for pairToPair) >= v.2.28.0
+Python dependencies: 
+- bgzip
+- pandas
+- pyvcf
+- matplotlib
+- networkx
+- numpy
+- os
+- re
+- sys
+
 
 Sample test command: 
 ```

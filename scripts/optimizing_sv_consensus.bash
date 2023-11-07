@@ -31,7 +31,7 @@ usage() {
     exit 1;
 }
 
-while getopts ":a:o:i:n:h" var; do  
+while getopts ":a:o:i:n:h:s" var; do  
     echo "$var"
     case "$var" in
         a) 
@@ -118,12 +118,21 @@ fi
 
 echo -e "\n## 2)\tCOMBINE BEDPE SV CALLS\n" # Print the status to the terminal
 
+#Add a "center" column to the bedpe. This will be necessary for merge_reorder_pairs.py because this script counts the number of times each center is seen.
+i=0
+for file in "${bedpe_files[@]}"; do
+    center=${caller_name_array[i]} 
+    temp_file=$file.tmp
+    awk -v val="$center" 'BEGIN {OFS = "\t"} FNR==1{a="center"} FNR>1{a=val} {print $0"\t"a}' $file | grep -v chrom1 > $temp_file
+    # mv $temp_file $file
+    let i++
+done
+
 # Variable definition
 # It looks like the bedpe_header they were using versus ours will be different -_- (fingers crossed this works)
-# bedpe_header="chrom1\tstart1\tend1\tchrom2\tstart2\tend2\tsv_id\tpe_support\tstrand1\tstrand2\tsvclass\tsvmethod"
 # bedpe_header="chrom1\tstart1\tend1\tchrom2\tstart2\tend2\tname\tqual\tstrand1\tstrand2\tsv_class\tsv_type\tscore\tsupp_reads\tscna\tcenter\tread_id" # Header 
-SV_ORIG=${output_directory}/origMasterSvList.bed # Master file path
-SV_MASTER=${output_directory}/sortedMasterSvList.bed # Master file path
+SV_ORIG=${output_directory}/origMasterSvList.bedpe # Master file path
+SV_MASTER=${output_directory}/sortedMasterSvList.bedpe # Master file path
 umask 002
 touch ${SV_MASTER}
 
@@ -131,52 +140,31 @@ touch ${SV_MASTER}
 i=1
 for file in "${bedpe_files[@]}"; do
     echo $file
-    #sed 's/chr//g' $file > $file
     if [ $i -ne 1 ]
     then
-        tail -n +2 $file >> $SV_ORIG
+        tail -n +2 $file.tmp >> $SV_ORIG
         let i++
     else
-        cat $file >> $SV_ORIG
+        cat $file.tmp >> $SV_ORIG
         let i++
     fi
 done
 
-sed '2,$s/chr//g' $SV_ORIG > $SV_MASTER
+sed '2,$s/chr//g' $SV_ORIG > $SV_ORIG.tmp
+mv $SV_ORIG.tmp $SV_ORIG
 
 # Sort, save unique lines, remove header (which contains chrom1 string), and save updated file
-sort -k1,1V $SV_MASTER | uniq | grep -v chrom1 >> $SV_MASTER
+sort -k1,1V $SV_ORIG | uniq | grep -v chrom1 >> $SV_MASTER
 
 # Update log file
 echo -e "\n$SV_MASTER" | tee -a $log_file
 
-# exit 0
-
-
-################################
-#Add a "center" column to the bedpe. This will be necessary for merge_reorder_pairs.py because this script counts the number of times each center is seen.
-#I could not figure out how to prevent this code from adding a header each time it is run, so I added the 'cut -f -13' part to just trim it off. If you know how to do it, please modify :).
-
-i=0 #Counter to map the bedpe to the center name. I can't think of a more beautiful way to do this because my bash skills are tenuous at best.
-for file in "${bedpe_files[@]}"; do
-    
-    center=${caller_name_array[i]} #get the name of the center (from the input argument).
-    center_column_header="center" #specify the column header
-    awk -v val="$center" -v header="$center_column_header" 'BEGIN {OFS = "\t"} { if (FNR == 1) {print $0, header} else { $13 = val; print } }' "$file" | cut -f -13 > tmpfile && mv tmpfile "$file"
-
-    i=$((i+1)) #Update the counter.
-done
-
-
-
-
 #####################################################################
 # Pair SVs and find overlaps between bedpe files
-# Dependency: pybedtools pairToPair
+# Dependency: bedtools pairToPair
 #####################################################################
 
 # Variable definition
-SLOP=400 # Number of base pairs of slop for combining SV breakpoint ends (e.g. callers may call the same sv breakpoint, but be a few bp off because of the algorithm)
 PAIR2PAIR=${output_directory}/pair2pair_SV_merging.bed # Output file path
 echo -n "" > $PAIR2PAIR # Create empty file
 
@@ -185,10 +173,10 @@ echo -n "" > $PAIR2PAIR # Create empty file
 ## -slop = amount of extra space
 ## -rdn = require hits to have diff names
 ## -a and -b = input bedpe files; -a = master, -b = institution
+SLOP=400
 
 for file in "${bedpe_files[@]}"; do
-    #I installed bedtools with pip install bedtools. I could not find a way to get pybedtools to work.
-    pairToPair -slop $SLOP -rdn -a <(cut -f -13 ${SV_MASTER}) -b <(cut -f -13 $file | awk -v aliquot_id=$aliquot_id '{print $0"\t"aliquot_id}')  >> $PAIR2PAIR
+    pairToPair -slop $SLOP -rdn -a ${SV_MASTER} -b <(awk -v aliquot_id=$aliquot_id '{print $0"\t"aliquot_id}' $file.tmp)  >> $PAIR2PAIR
 done
 
 #####################################################################
@@ -197,33 +185,16 @@ done
 #####################################################################
 
 inBEDPE=${output_directory}/${aliquot_id}_SV_overlap.txt
-python2 scripts/pcawg_merge_reorder_pairs.py $PAIR2PAIR $aliquot_id > ${inBEDPE}
-#python2 scripts/pcawg_merge_reorder_pairs.py $PAIR2PAIR $aliquot_id #For troubleshooting
-
-
-# I'm finding that commenting the above python file is hard to do without understanding the input. 
-# Let's run everything before this step to test and make sure logic is working but also to be able to comment on the script
-# Now it seems like the pairToPair output makes sense?
-#I think I also have pcawg_merge_reorder_pairs.py working
-
-###TODO: Need to double check the column headers vs column content in the output of pcawg_merge_reorder_pairs.py. I think some are incorrect (but this is a minor issue?)
-
-
-
-
-
-
-
-
+# TODO: Need to double check the column headers vs column content in the output of pcawg_merge_reorder_pairs.py. I think some are incorrect (but this is a minor issue?)
+python scripts/pcawg_merge_reorder_pairs.py $PAIR2PAIR $aliquot_id > ${inBEDPE}
 
 # #####################################################################
 # #############	  Merge and get cliques of SVs 	    #################
 # #####################################################################
 echo -e "\n## 3)\tMERGE SVs\n"
 
-outVCF=${output_directory}/${aliquot_id}.somatic.sv.vcf #I changed this because we removed {today} and {call_stamp}
-
-outSTAT=${outVCF/.vcf/.stat}
+outBEDPE=${output_directory}/${aliquot_id}.somatic.sv.bedpe
+outSTAT=${outBEDPE/.bedpe/.stat}
 
 #cd ./test_bedpe #TODO: hard coded, update later.
 
@@ -232,8 +203,11 @@ outSTAT=${outVCF/.vcf/.stat}
 ########### TODO: Fix hard coding in python script so that it accepts any number of bedpe files and isn't just looking for these specific ones
 
 #python2 scripts/pcawg6_sv_merge_graph.py -e ${inBEDPE} -o ${outVCF} -s ${outSTAT} -a $SANGER_ANNO_VCF -b $DELLY_ANNO_VCF -c $DRANGER_ANNO_VCF -d $SNOWMAN_ANNO_VCF | tee -a $log #OG versions
-bedpe_python_input_array=$(IFS=" " ; echo "${bedpe_files[@]}") #Convert the array of bedpe files to a space-separated string to make it easier to use as a python argument
-python2 scripts/pcawg6_sv_merge_graph.py -e ${inBEDPE} -z "$bedpe_python_input_array" -o ${outVCF} -s ${outSTAT} | tee -a $log
+# bedpe_files_tmp=("${bedpe_files[@")
+bedpe_python_input_array=$(IFS=" " ; echo "${bedpe_files[@]/%/.tmp}") # Convert the array of bedpe files to a space-separated string to make it easier to use as a python argument
+python scripts/pcawg6_sv_merge_graph.py -e ${inBEDPE} -z "$bedpe_python_input_array" -o ${outBEDPE} -s ${outSTAT} | tee -a $log
+
+exit 0
 
 
 

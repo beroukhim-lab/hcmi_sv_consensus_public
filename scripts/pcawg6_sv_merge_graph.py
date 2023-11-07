@@ -26,6 +26,15 @@ import pandas as pd
 
 today = datetime.date.today().strftime("%Y%m%d")
 
+# Original script call: python2 scripts/pcawg6_sv_merge_graph.py -e ${inBEDPE} -o ${outVCF} -s ${outSTAT} -a $SANGER_ANNO_VCF -b $DELLY_ANNO_VCF -c $DRANGER_ANNO_VCF -d $SNOWMAN_ANNO_VCF | tee -a $log
+# New script call: python scripts/pcawg6_sv_merge_graph.py -e ${inBEDPE} -z "$bedpe_python_input_array" -o ${outVCF} -s ${outSTAT} | tee -a $log
+
+##########################################################
+# Part 1: Setup 
+# Parse arguments 
+# Setup graph structure and order clique calls
+##########################################################
+
 def _getShortID(recordID):
     shortID=recordID.split('_')[0]
     return shortID
@@ -55,85 +64,36 @@ def inTriangle(x, y, cutX, cutY):
     v = (dot00 * dot12 - dot01 * dot02) * invDenom
     return (u >= 0) and (v >= 0) and (u + v < 1)
 
-
+# Debugging: List all of the bedpe files in the array
+def process_file_paths():
+    for path in inBEDPE_array:
+        print("File path: %s" % path)
 
 # Parse command line
 parser=argparse.ArgumentParser(description='Graph builder.')
-parser.add_argument('-a', '--inVCF_BRASS', metavar='brass_in.vcf', required=False, dest='inVCF_BRASS', help='input vcf file (optional)')
-parser.add_argument('-b', '--inVCF_DELLY', metavar='delly_in.vcf', required=False, dest='inVCF_DELLY', help='input vcf file (optional)')
-parser.add_argument('-c', '--inVCF_DRANGER', metavar='dranger_in.vcf', required=False, dest='inVCF_DRANGER', help='input vcf file (optional)')
-parser.add_argument('-d', '--inVCF_SNOWMAN', metavar='snowman_in.vcf', required=False, dest='inVCF_SNOWMAN', help='input vcf file (optional)')
-
-parser.add_argument('-z', '--inBEDPE_array', metavar='bedpe_array_in.bedpe', required=False, dest='inBEDPE_array', help='input array of bedpe files') #Load in the array of bedpe files
-parser.add_argument('-e', '--inBEDPE', metavar='overlap.bedpe', required=True, dest='inBEDPE', help='input overlap table (required)')
-
-
-# parser.add_argument('-u', '--unionDEL', metavar='uniondel.bed', required=False, dest='uDEL', help='union deletions merged calls (optional)')
+parser.add_argument('-e', '--inBEDPE_overlap', metavar='overlap.bedpe', required=True, dest='inBEDPE_overlap', help='input _SV_overlap.txt table from pairToPair (required)')
+parser.add_argument('-z', '--inBEDPE_array', metavar='bedpe_array_in.bedpe', required=True, dest='inBEDPE_array', help='input array of bedpe files as string') #Load in the array of bedpe files
+parser.add_argument('-o', '--outBEDPE', metavar='out.bedpe', required=False, dest='outBEDPE', help='output bedpe file (optional)')
 parser.add_argument('-s', '--stat', metavar='stat.bed', required=False, dest='outStat', help='output statistics (optional)')
-#parser.add_argument('-c', '--copynumberConcordance', metavar='0.5', required=True, dest='copyConc', help='required copynumber concordance (required)')
-#parser.add_argument('-r', '--reciprocalOverlap', metavar='0.5', required=True, dest='recOver', help='required reciprocal overlap (required)')
-#parser.add_argument('-m', '--minCarrier', metavar='5', required=True, dest='minCarrier', help='required minimum number of carrier samples (required)')
-parser.add_argument('-t', '--triangle', dest='useTriangle', action='store_true', default=False, help='use upper triangle')
-parser.add_argument('-p', '--plot', dest='plotSubgraph', action='store_true', default=False, help='plot subgraphs')
-parser.add_argument('-o', '--outVCF', metavar='out.vcf', required=False, dest='outVCF', help='output vcf file (optional)')
-parser.add_argument('-y', '--priority', metavar='priority.txt', required=False, dest='inPrior', help='priority scores (optional)')
 args = parser.parse_args()
 
+inBEDPE_overlap = args.inBEDPE_overlap
+inBEDPE_array = args.inBEDPE_array.split(' ')
+outBEDPE = args.outBEDPE
+outSTAT = args.outStat
 
-#List all of the bedpe files in the array
-inBEDPE_array=args.inBEDPE_array
-def process_file_paths(file_paths):
-    file_path_array = file_paths.split(' ')
-    for path in file_path_array:
-        print("File path: %s" % path)
-
-if __name__ == "__main__":
-    file_paths = sys.argv[1:] # Get the file paths from the command-line arguments
-
-    # Call the function with the array of file paths as an argument
-    process_file_paths(inBEDPE_array)
-
-
-
-
-# Parse command-line parameters
-
-#recOver=0.5
-minCarrier=2
-#if args.recOver:
-#    recOver=float(args.recOver)
-udel=collections.defaultdict(set)
-
-priority=collections.defaultdict(float)
-if args.inPrior:
-    f_reader=csv.reader(open(args.inPrior), delimiter="\t")
-    for fields in f_reader:
-        if (fields[1]!="NA"):
-            priority[fields[0]] = float(fields[1])
-
-
-inBEDPE_array=args.inBEDPE_array
-inBEDPE = args.inBEDPE
-useTriangle = args.useTriangle
-plotSubgraph = args.plotSubgraph
-outStat = args.outStat
-outVCF = args.outVCF
+minCarrier = 2
 copyConc = 0
+priority=collections.defaultdict(float)
 
 # Overlap graph
-
-inVCF_BRASS = args.inVCF_BRASS
-inVCF_DELLY = args.inVCF_DELLY
-inVCF_DRANGER = args.inVCF_DRANGER
-inVCF_SNOWMAN = args.inVCF_SNOWMAN
-
-pid = os.path.basename(os.path.dirname(inBEDPE))
+process_file_paths()
+pid = os.path.basename(os.path.dirname(inBEDPE_overlap))
 G=networkx.Graph()
-# Parse bed fileSV padding
-f_reader=csv.DictReader(open(inBEDPE), delimiter="\t")
+# Parse bed file SV padding
+f_reader=csv.DictReader(open(inBEDPE_overlap), delimiter="\t")
 for row in f_reader:
     pid = row['pid']
-    #if (float(row['interSect'])>0.5):
     if not G.has_edge(row['name_SV1'], row['name_SV2']):
         G.add_edge(row['name_SV1'], row['name_SV2'], weight=float(row['rn_share_fract']))
         G.add_edge(row['name_SV1'], row['name_SV2'], weight=float(row['rn_share_fract']))
@@ -143,41 +103,36 @@ for row in f_reader:
         svType2 = row['svtype_SV2']
         if row['svtype_SV2'] == "NA":
             svType2 = "BND"
-        G.node[row['name_SV1']]['SVtype']=(svType1, row['pid'], row['center_SV1'],row['idSV1'])
-        G.node[row['name_SV2']]['SVtype']=(svType2, row['pid'], row['center_SV2'],row['idSV2'])
-
-
-
+        G.nodes[row['name_SV1']]['SVtype']=(svType1, row['pid'], row['center_SV1'],row['idSV1']) # networkx 2.4 requires G.nodes[] instead of G.node[]
+        G.nodes[row['name_SV2']]['SVtype']=(svType2, row['pid'], row['center_SV2'],row['idSV2'])
 
 # Parse graph structure
 compAssign=dict()
 compMembers=collections.defaultdict(list)
 conCompCount=0
 cliqueCount=0
-for H in networkx.connected_component_subgraphs(G):
+for H in (G.subgraph(c) for c in nx.connected_components(G)): # connected_components_subgraphs(G) deprecated --> use replacement
     conCompCount+=1
     typeSet=set()
     sample=set()
     center=list()
-    for n, d in H.nodes(data=True): ###I updated nodes_iter to nodes because the version of the python package I'm using changed nodes_iter -> nodes
+    for n, d in H.nodes(data=True): # nodes() instead of nodes.iter()
         typeSet.add(d['SVtype'][0])
         sample.add(d['SVtype'][1])
         center.append(d['SVtype'][2])
     baseDir = 'plots/' + pid + '/'
     try:
         os.makedirs(baseDir)
-    except Exception, e:
+    except Exception as e:
         pass
     baseName=  '_'.join(list(sample) + sorted(typeSet)) + '.' + str(conCompCount) + '_' + ';'.join(map(str, list(set(center)))) + '.png' 
-    #print (baseName, n,d)
+    '''
+    # This section was used in original code if plotSubgraph was provided as an arg, but it was not in bash, so I removed the arg
     if plotSubgraph:
-        #labels=nx.draw_networkx_labels(H,pos=nx.spring_layout(H))
-        #nx.draw_networkx_nodes(H,pos=nx.spring_layout(H),node_size=700)
         elarge=[(u,v) for (u,v,d) in H.edges(data=True) if d['weight'] >0.3]
         esmall=[(u,v) for (u,v,d) in H.edges(data=True) if d['weight'] <=0.3]
         pos=nx.circular_layout(H) # positions for all nodes
         # nodes
-        ##centercolor = [i.replace('sanger', '#ADD8E6').replace('broad-dRanger', '#F0E68C').replace('embl-delly', '#90EE90') for i in center]
         centercolor = [i.replace('sanger', '#ADD8E6').replace('embl', '#90EE90').replace('dRanger', '#F0E68C').replace('smufin', '#800080').replace('snowman', '#FFA500') for i in center]
 
         nx.draw_networkx_nodes(H,pos,node_size=700 , node_color=centercolor, font_family="arial")
@@ -188,6 +143,7 @@ for H in networkx.connected_component_subgraphs(G):
         nx.draw_networkx_edges(H,pos,edgelist=esmall,
                             width=2+4*weight,alpha=0.5,edge_color='b',style='dashed')
         plotGraph(H, baseName)
+    '''
     for n in H.nodes(data=False): ###I updated nodes_iter to nodes because the version of the python package I'm using changed nodes_iter -> nodes
          compAssign[n]=conCompCount
          compMembers[conCompCount].append(n)
@@ -199,24 +155,20 @@ for H in networkx.connected_component_subgraphs(G):
         pass
 
 # Print summary
-if outStat:
-    bedOut = open(outStat, 'w')
+if outSTAT:
+    bedOut = open(outSTAT, 'w')
     print('copyConc', 'minCarrier', 'number_of_nodes', 'connected_components_Count', 'clique_Count', sep="\t", file=bedOut)
     print(copyConc, minCarrier, G.number_of_nodes(), conCompCount, cliqueCount, sep="\t", file=bedOut)
     bedOut.close()
 
-
-cliqueFile = inBEDPE.replace('.txt','.clique.txt')
+cliqueFile = inBEDPE_overlap.replace('.txt','.clique.txt')
 with open(cliqueFile, 'w') as w:
     writer = csv.writer(w, delimiter="\t", lineterminator="\n")
-    for k,v in compAssign.iteritems():
+    for k,v in compAssign.items(): #python 3 replaced dict.iteritems() with dict.items()
         out = [k,v]
         writer.writerow(out)
 
-
-
 # Order the calls in a clique by assumed genotyping accuracy
-
 for compID in compMembers.keys():
     outOrder=list()
     for callX in compMembers[compID]:
@@ -233,8 +185,12 @@ for compID in compMembers.keys():
     compMembers[compID]=outOrder
     #print(compID, compMembers[compID])
 
-# Merge calls
-# read in all the vcf files into a hash table. Cannot merge due to too many different formats.
+# ^ Things seem to be working above this point (or at least they're running, no clue if the output is as intended)
+
+##########################################################
+# Part 2: Merge Calls
+# Original code read in VCF files into a hash table; did not merge due to formatting differences
+##########################################################
 
 def read_orient(record):
     strands = ['NA', 'NA']
@@ -254,65 +210,8 @@ def get_mate(record):
     # re.sub(r'.*([^\:]):([A-Z0-9]*).*', r'\1' ,str(record))
     return [matechrom.replace('chr', ''), matepos]
 
-
 def mergeinfo(d1, d2):
     return reduce(lambda a,b: dict (a, **b), (d1,d2))
-
-
-def extract_vcf_rows(inVCF, mastermerge, header_concat, compAssign):
-    svcaller = inVCF.split('/')[-2]
-    with gzip.open(inVCF, 'rb') as rin:
-        for f in rin:
-            row = f.rsplit()
-            rinfos = dict()
-            if row[0].startswith("#"):
-                if row[-1].endswith('>'):
-                    row[-1] = re.sub(r'">$', ',tool=' + svcaller + '">', row[-1])
-                header_concat.append(row)
-            else:
-                if re.search(r'_[12]$', row[2]):
-                    svid = re.sub(r'_[12]$', '',row[2])
-                elif re.search(r':[12]$', row[2]):
-                    svid = re.sub(r':[12]$', '',row[2])
-                else:
-                    break
-                if svid in compAssign:
-                    cliqid = compAssign.get(svid)
-                    mastermerge[cliqid].append(row)
-    return mastermerge, header_concat
-
-###Create a new function that should do the same thing as extract_vcf_rows, except by using a bedpe input
-base_directory = os.getcwd() #Hard coding this just to get it to work -- change later
-file_directory = "/mnt/c/Users/misek/OneDrive/vscode/sv_consensus/test_bedpe" #Hard coding this just to get it to work -- change later
-def extract_bedpe_rows(single_bedpe, mastermerge, header_concat, compAssign):
-
-    os.chdir(file_directory) #Hard coding this just to get it to work -- change later
-    bedpe_base_name = single_bedpe.rsplit('/', 1)[-1] #Extract just the file name from the file path
-
-    with open(bedpe_base_name) as rin:
-        for row in rin:
-            rinfos = dict()
-
-            if row[0].startswith("chrom1"):
-                header_concat.append(row)
-
-            else:
-                svid = row[6]
-
-                if svid in compAssign:
-                    cliqid = compAssign.get(svid)
-                    mastermerge[cliqid].append(row)
-
-    os.chdir(base_directory) #Hard coding this just to get it to work -- change later
-
-    return mastermerge, header_concat
-
-
-
-
-
-
-
 
 def sv_class(chrom1, strand1, chrom2, strand2):
     if chrom1 != chrom2:
@@ -328,6 +227,40 @@ def sv_class(chrom1, strand1, chrom2, strand2):
         elif strand2 == "+":
             return "DUP"
 
+# Create a new function that should do the same thing as extract_vcf_rows, except by using a bedpe input
+def extract_bedpe_rows(single_bedpe, mastermerge, header_concat, compAssign):
+    # I had to remove headers in the .tmp files for pairToPair, but we'll want to make use of them here:
+    print(compAssign)
+    with open(single_bedpe, 'rb') as rin:
+        # I removed headers in my bedpe tmp files for pairToPair --> manually assign header
+        header_concat.append("chrom1\tstart1\tend1\tchrom2\tstart2\tend2\tname\tqual\tstrand1\tstrand2\tsv_class\tsv_type\tscore\tsupp_reads\tscna\tcenter\tread_id\tcenter")
+        for f in rin:
+            row = f.decode("utf-8").split() # Byte string formatting was screwing up recognition below -- edited to resolve
+            rinfos = dict()
+            svid = row[6]
+            if svid in compAssign:
+                cliqid = compAssign.get(svid)
+                mastermerge[cliqid].append(row)
+    return mastermerge, header_concat
+
+'''
+mastermerge = defaultdict(list)
+header_concat = list()
+for inVCF in inVCF_DELLY, inVCF_BRASS, inVCF_DRANGER, inVCF_SNOWMAN:
+    mastermerge, header_concat = extract_vcf_rows(inVCF, mastermerge, header_concat, compAssign)
+'''
+
+mastermerge = defaultdict(list)
+header_concat = list()
+for single_bedpe in inBEDPE_array:
+    mastermerge, header_concat = extract_bedpe_rows(single_bedpe, mastermerge, header_concat, compAssign)
+
+exit() # Adding this here just so I can test in chunks -- remove/move when this section has been debugged
+
+##########################################################
+# Part 3:
+
+##########################################################
 
 def generate_vcf(cliqset, n):
     '''
@@ -381,7 +314,7 @@ def generate_vcf(cliqset, n):
             ref1array = np.append(ref1array, row[3])
             try:
                 qual1list.append(str(row[5]))
-            except Exception, e:
+            except Exception as e:
                 pass
             alt1array = np.append(alt1array, row[4])
             pos1array = np.append(pos1array , int(row[1]))
@@ -392,7 +325,7 @@ def generate_vcf(cliqset, n):
             ref2array = np.append(ref2array, row[3])
             try:
                 qual2list.append(str(row[5]))
-            except Exception, e:
+            except Exception as e:
                 pass
             alt2array = np.append(alt2array, row[4])
             pos2array = np.append(pos2array , int(row[1]))
@@ -478,21 +411,6 @@ def generate_vcf(cliqset, n):
     #print (svid_1, svid_2, svcaller)
     return (vcf1line, vcf2line)
 
-
-'''
-mastermerge = defaultdict(list)
-header_concat = list()
-for inVCF in inVCF_DELLY, inVCF_BRASS, inVCF_DRANGER, inVCF_SNOWMAN:
-    mastermerge, header_concat = extract_vcf_rows(inVCF, mastermerge, header_concat, compAssign)
-'''
-
-#Try to do the same thing as in the extract_vcf_rows function, except with a bedpe input
-mastermerge = defaultdict(list)
-header_concat = list()
-for  single_bedpe in inBEDPE_array:
-    mastermerge, header_concat = extract_bedpe_rows(inBEDPE_array, mastermerge, header_concat, compAssign)
-
-
 def generate_bedpe(a):
     chrom1, start1, end1 = a[0], a[1], int(a[1])+1
     #chrom2, start2 = re.sub(r'.*[\]\[][a-z]*([0-9]*):([0-9]*).*', r'\1,\2' ,a[4]).split(',')
@@ -566,7 +484,7 @@ if statCounter:
             ks = k.split('_')[0] + "_count_lt_5kb"
             try:
                 d[ks] = v[0][0]
-            except Exception, e:
+            except Exception as e:
                 d[ks] = np.nan    
     #df_filter.columns = [pid]
 outFILTER = outVCF.replace('.vcf', '_sizeStat.txt')
