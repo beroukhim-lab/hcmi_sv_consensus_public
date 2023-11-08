@@ -204,12 +204,6 @@ def read_orient(record):
         strands = ['-', '-']
     return strands
 
-def get_mate(record):
-    matepos = int(re.sub(r'.*[^\:]:([0-9]*).*', r'\1' ,str(record)))
-    matechrom = re.sub(r'[A-Z]*[\[\]]*([^:]*):.*', r'\1', record)
-    # re.sub(r'.*([^\:]):([A-Z0-9]*).*', r'\1' ,str(record))
-    return [matechrom.replace('chr', ''), matepos]
-
 def mergeinfo(d1, d2):
     return reduce(lambda a,b: dict (a, **b), (d1,d2))
 
@@ -230,7 +224,7 @@ def sv_class(chrom1, strand1, chrom2, strand2):
 # Create a new function that should do the same thing as extract_vcf_rows, except by using a bedpe input
 def extract_bedpe_rows(single_bedpe, mastermerge, header_concat, compAssign):
     # I had to remove headers in the .tmp files for pairToPair, but we'll want to make use of them here:
-    print(compAssign)
+    # print(compAssign)
     with open(single_bedpe, 'rb') as rin:
         # I removed headers in my bedpe tmp files for pairToPair --> manually assign header
         header_concat.append("chrom1\tstart1\tend1\tchrom2\tstart2\tend2\tname\tqual\tstrand1\tstrand2\tsv_class\tsv_type\tscore\tsupp_reads\tscna\tcenter\tread_id\tcenter")
@@ -255,13 +249,13 @@ header_concat = list()
 for single_bedpe in inBEDPE_array:
     mastermerge, header_concat = extract_bedpe_rows(single_bedpe, mastermerge, header_concat, compAssign)
 
-exit() # Adding this here just so I can test in chunks -- remove/move when this section has been debugged
+
 
 ##########################################################
 # Part 3:
 
 ##########################################################
-
+'''
 def generate_vcf(cliqset, n):
     '''
     cliqset:    input list of clique SVs
@@ -332,7 +326,7 @@ def generate_vcf(cliqset, n):
             info2list += infofull.split(';')
     if len(strand1set) * len(strand2set) * len(chrom1set) * len(chrom2set) * len(pos1array)/len(pos2array) !=1:
         print ("error")
-        with open('unresolved.txt', 'wa') as rin:
+        with open('unresolved.txt', 'a') as rin:
             for row in v:
                 rin.writelines(','.join(map(str, v)) + "\n")
         return (False, False)
@@ -411,6 +405,12 @@ def generate_vcf(cliqset, n):
     #print (svid_1, svid_2, svcaller)
     return (vcf1line, vcf2line)
 
+def get_mate(record):
+    matepos = int(re.sub(r'.*[^\:]:([0-9]*).*', r'\1' ,str(record)))
+    matechrom = re.sub(r'[A-Z]*[\[\]]*([^:]*):.*', r'\1', record)
+    # re.sub(r'.*([^\:]):([A-Z0-9]*).*', r'\1' ,str(record))
+    return [matechrom.replace('chr', ''), matepos]
+
 def generate_bedpe(a):
     chrom1, start1, end1 = a[0], a[1], int(a[1])+1
     #chrom2, start2 = re.sub(r'.*[\]\[][a-z]*([0-9]*):([0-9]*).*', r'\1,\2' ,a[4]).split(',')
@@ -423,23 +423,29 @@ def generate_bedpe(a):
     svclass = re.sub(r'.*;SVCLASS=([A-Za-z0-9]*).*', r'\1', a[7])
     svmethod = re.sub(r'.*;SVMETHOD=([A-Za-z0-9_]*);.*', r'\1', a[7])
     return [chrom1, start1, end1, chrom2, start2, end2, name, score, strand1, strand2, svclass, svmethod]
+'''
 
-
-fopen = open('unresolved.txt', 'w')
-fopen.close()
-vcflines = list()
+# fopen = open('unresolved.txt', 'w')
+# fopen.close()
+# vcflines = list()
 bedpelines = list()
-n= 0
-for k, v in mastermerge.iteritems():
+n = 0
+for k, v in mastermerge.items():
     #print (k)
     if k:
+        bedpelines = [*bedpelines, *v] # TO SELF: COME BACK TO THIS SECTION <- Not sure yet if this works (idea is to just concatenate bedpe lines in cliques)
         n +=1
+        print(v)
+        print(n)
         a,b = generate_vcf(v, n)
+        # print(a)
         if a and b:
             vcflines.append(a)
             vcflines.append(b)
             bedpe = generate_bedpe(a)
             bedpelines.append(bedpe)
+
+exit() # Adding this here just so I can test in chunks -- remove/move when this section has been debugged
 
 vcflines.sort(key = lambda x: (x[0], int(x[1])))
 bedpelines.sort(key = lambda x: (x[0], int(x[1])))
