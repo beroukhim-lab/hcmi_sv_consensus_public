@@ -210,21 +210,14 @@ exit 0
 
 
 
-
-
-
-
-
-
-
 # #####################################################################
 # ##############    RNA/GERMLINE BLACKLIST  REMOVAL   #################
 # #####################################################################
-# echo -e "\n\tREMOVE BLACKLIST\n"
+#echo -e "\n\tREMOVE BLACKLIST\n"
 
-# BLACKLIST_SV_ID=${aliquot_id}.blacklist_svid.txt
-# echo -en "" > ${BLACKLIST_SV_ID}
-# ## remove SVs with both breaks overlapping blacklist regions - germline artefacts and TEs
+#BLACKLIST_SV_ID=${aliquot_id}.blacklist_svid.txt
+#echo -en "" > ${BLACKLIST_SV_ID}
+## remove SVs with both breaks overlapping blacklist regions - germline artefacts and TEs
 # pairToPair -is -type both -a ${outVCF/.vcf/.bedpe} -b $BLACKLIST_BEDPE  > ${outVCF/.vcf/_blacklisted_tmp.bedpe}
 # if [[ -s ${outVCF/.vcf/_blacklisted_tmp.bedpe}  ]];then
 # cut -f 7,19 ${outVCF/.vcf/_blacklisted_tmp.bedpe} | sed 's/|.*//' | sort -u   >> ${BLACKLIST_SV_ID}
