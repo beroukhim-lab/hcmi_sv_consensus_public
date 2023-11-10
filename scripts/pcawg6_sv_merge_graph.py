@@ -257,13 +257,13 @@ for single_bedpe in inBEDPE_array:
 ##########################################################
 '''
 def generate_vcf(cliqset, n):
-    '''
-    cliqset:    input list of clique SVs
-    n:          increasing number to to ID field
-    Merge read1 and read2 of a pair.
-    combine all read ids and all INFO fields into one aggregate
-    return two lists with read1 and read2
-    '''
+    
+    # cliqset:    input list of clique SVs
+    # n:          increasing number to to ID field
+    # Merge read1 and read2 of a pair.
+    # combine all read ids and all INFO fields into one aggregate
+    # return two lists with read1 and read2
+    
     chrom1set = set()
     chrom2set  = set()
     strand1set  = set()
@@ -434,21 +434,23 @@ for k, v in mastermerge.items():
     #print (k)
     if k:
         bedpelines = [*bedpelines, *v] # TO SELF: COME BACK TO THIS SECTION <- Not sure yet if this works (idea is to just concatenate bedpe lines in cliques)
-        n +=1
-        print(v)
-        print(n)
-        a,b = generate_vcf(v, n)
-        # print(a)
-        if a and b:
-            vcflines.append(a)
-            vcflines.append(b)
-            bedpe = generate_bedpe(a)
-            bedpelines.append(bedpe)
+        # n +=1
+        # print(v)
+        # print(n)
+        # a,b = generate_vcf(v, n)
+        # # print(a)
+        # if a and b:
+        #     vcflines.append(a)
+        #     vcflines.append(b)
+        #     bedpe = generate_bedpe(a)
+        #     bedpelines.append(bedpe)
+
+print(bedpelines)
+
+# vcflines.sort(key = lambda x: (x[0], int(x[1])))
+bedpelines.sort(key = lambda x: (x[0], int(x[1])))
 
 exit() # Adding this here just so I can test in chunks -- remove/move when this section has been debugged
-
-vcflines.sort(key = lambda x: (x[0], int(x[1])))
-bedpelines.sort(key = lambda x: (x[0], int(x[1])))
 
 
 ## Search for high number of small SVs - likely artefacts

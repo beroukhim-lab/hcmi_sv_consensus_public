@@ -185,7 +185,6 @@ done
 #####################################################################
 
 inBEDPE=${output_directory}/${aliquot_id}_SV_overlap.txt
-# TODO: Need to double check the column headers vs column content in the output of pcawg_merge_reorder_pairs.py. I think some are incorrect (but this is a minor issue?)
 python scripts/pcawg_merge_reorder_pairs.py $PAIR2PAIR $aliquot_id > ${inBEDPE}
 
 # #####################################################################
