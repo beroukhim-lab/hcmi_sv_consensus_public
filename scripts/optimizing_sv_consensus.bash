@@ -185,7 +185,7 @@ done
 #####################################################################
 
 inBEDPE=${output_directory}/${aliquot_id}_SV_overlap.txt
-python scripts/pcawg_merge_reorder_pairs.py $PAIR2PAIR $aliquot_id > ${inBEDPE}
+python3 scripts/pcawg_merge_reorder_pairs.py $PAIR2PAIR $aliquot_id > ${inBEDPE}
 
 # #####################################################################
 # #############	  Merge and get cliques of SVs 	    #################
@@ -204,7 +204,7 @@ outSTAT=${outBEDPE/.bedpe/.stat}
 #python2 scripts/pcawg6_sv_merge_graph.py -e ${inBEDPE} -o ${outVCF} -s ${outSTAT} -a $SANGER_ANNO_VCF -b $DELLY_ANNO_VCF -c $DRANGER_ANNO_VCF -d $SNOWMAN_ANNO_VCF | tee -a $log #OG versions
 # bedpe_files_tmp=("${bedpe_files[@")
 bedpe_python_input_array=$(IFS=" " ; echo "${bedpe_files[@]/%/.tmp}") # Convert the array of bedpe files to a space-separated string to make it easier to use as a python argument
-python scripts/pcawg6_sv_merge_graph.py -e ${inBEDPE} -z "$bedpe_python_input_array" -o ${outBEDPE} -s ${outSTAT} | tee -a $log
+python3 scripts/pcawg6_sv_merge_graph.py -e ${inBEDPE} -z "$bedpe_python_input_array" -o ${outBEDPE} -s ${outSTAT} | tee -a $log
 
 exit 0
 

@@ -126,6 +126,8 @@ for H in (G.subgraph(c) for c in nx.connected_components(G)): # connected_compon
     except Exception as e:
         pass
     baseName=  '_'.join(list(sample) + sorted(typeSet)) + '.' + str(conCompCount) + '_' + ';'.join(map(str, list(set(center)))) + '.png' 
+    
+    
     '''
     # This section was used in original code if plotSubgraph was provided as an arg, but it was not in bash, so I removed the arg
     if plotSubgraph:
@@ -250,15 +252,30 @@ for single_bedpe in inBEDPE_array:
     mastermerge, header_concat = extract_bedpe_rows(single_bedpe, mastermerge, header_concat, compAssign)
 
 
+###Debugging
+#Print mastermerge to see what it looks like
+print("AThis is the structure of mastermerge")
+num_entries_to_print = 5  # Number of entries you want to print
+
+# Iterating over the dictionary
+for i, (cliqid, bedpe_rows) in enumerate(mastermerge.items()):
+    print(f"Clique ID: {cliqid}")
+    for row in bedpe_rows:
+        print(row)
+    print("\n")  # Adding a new line for readability
+
+    # Break the loop after printing the desired number of entries
+    if i + 1 == num_entries_to_print:
+        break
 
 ##########################################################
 # Part 3:
 
 ##########################################################
-'''
+
 def generate_vcf(cliqset, n):
     
-    # cliqset:    input list of clique SVs
+    # cliqset:    input list of clique SVs. 
     # n:          increasing number to to ID field
     # Merge read1 and read2 of a pair.
     # combine all read ids and all INFO fields into one aggregate
@@ -282,98 +299,156 @@ def generate_vcf(cliqset, n):
     info1list = list()
     info2list = list()
     readnamelist = list()
-    svcaller = set()
+    svcaller = set() #I'm a little confused because this gets filled with info from the ID column
     svid_1 = "SVMERGE" + str(n) + "_1"
     svid_2 = "SVMERGE" + str(n) + "_2"
-    for row in cliqset:
-        svcaller.add ( row[2].split('_')[0])
-        matechrom, matepos = get_mate(row[4])
-        infofull  = row[7]
-        chrom = row[0]
-        pos = int(row[1])
-        #print (chrom, pos, matechrom, matepos)
+
+    for row in cliqset: #Cliqset is a list of lists where each 'sublist' is a bedpe row. Each k is a cliq id. Cliqset typically has >1 rows, each corresponding to a different caller.
+        svcaller.add ( row[2].split('_')[0]) #This line will pull from the ID column (example entry = TRA00043279_2) and will extract everything before the _.
+        matechrom, matepos = get_mate(row[4]) #This line will take a complex string (example entry = [21:38498961[A) and will subset out the chr and pos and store as two values.
+        infofull  = row[7] #This line will extract the data in the VCF INFO field
+        chrom = row[0] #This line will extract the VCF chromosome field
+        pos = int(row[1]) #This line will extract the VCF position and will convert to int
+
         # info = infofull.split(';')
+
+        #This loop will look for the listed strings in the INFO column
+        #If it finds the string, it will subset out that information from the INFO column
+        #Example output = 'READ_ID=ABC'
+        #I don't think we need this since we don't have an INFO column to begin with.
         for rn in ['READNAMES', 'READ_ID', 'TRDS', 'TSRDS']:
             if rn in row[7]:
-                readnamelist += re.sub(r'.*' + rn + '=([^;]*).*', r'\1', row[7]).split(',')
+                readnamelist += re.sub(r'.*' + rn + '=([^;]*).*', r'\1', row[7]).split(',') 
+
+        #This code will remove all elements from 'rn' from the INFO string 
+        #This will replace the original INFO string (infofull) in memory
         infofull = re.sub(r'(.*);' + rn + '=[^;]*;(.*)', r'\1;\2', infofull)
+
+        #I think this code will take a string like this ("0/0:0.0,-12.3422,-246.0:123:PASS:430:0:0:41:0") and will:
+        #First, split on ':', then figure out if the final chunk contains a ','.
+        #If the above condition is true, it will add that value to readnamelist
+        #I don't believe we care about this, because we don't have this information in our bedpe
         if len(row[-1].split(':')[-1].split(','))>1:
             readnamelist += row[-1].split(':')[-1].split(',')
+
+
         # Always take the smallest chrom or pos as the first pair
+        ####note: It seems like all this is doing is adding a bunch of VCF information to variables
+        ####note: There are two arrays/lists/etc for each type of information
+        ####note: Information gets added to each array/list/etc depending on the chrom vs matechrom value  
+        #This code block will first check for two conditions
+        #If "mate chrom" is larger than "chrom" (for example, check if chr'12' is larger than chr'2')
+        #If "mate chrome" is the same as "chrome", then do a similar comparison for the position
         if chrom < matechrom or (chrom == matechrom and pos < matepos):
-            strand1, strand2 = read_orient(row[4])
-            strand1set.add(strand1)
-            strand2set.add(strand2)
-            chrom1set.add(row[0])
-            ref1array = np.append(ref1array, row[3])
+            strand1, strand2 = read_orient(row[4]) #This function will take a string (e.g. [21:38498961[A) and depending on the orientation of the brackets it will determine if strand1 and strand2 are the - or + DNA strands
+            strand1set.add(strand1) #Add strand1 to a set. Why? Just error checking?
+            strand2set.add(strand2) #Add strand2 to a set. Why? Just error checking?
+            chrom1set.add(row[0]) #Add the chromosome to a set. Why? Just error checking?
+            ref1array = np.append(ref1array, row[3]) #Add the ref allele (e.g. A, T, C, or G) to a np array
+
             try:
-                qual1list.append(str(row[5]))
+                qual1list.append(str(row[5])) #Add the quality score to a list
+
             except Exception as e:
                 pass
-            alt1array = np.append(alt1array, row[4])
-            pos1array = np.append(pos1array , int(row[1]))
-            info1list += infofull.split(';')
-        else:
+
+            alt1array = np.append(alt1array, row[4]) #Add the ALT allele string (e.g. [21:38498961[A) to a numpy array
+            pos1array = np.append(pos1array , int(row[1])) #Add the VCF POS value to a numpy array
+            info1list += infofull.split(';') #Split the INFO string (e.g. 'CIEND=-196,196;CIPOS=-196,196;PE=5') then add to a list
+
+        else: #In cases where chrom > matechrome or chrom == matechrome and pos > matepos
         # elif row[2].endswith("2"):
-            chrom2set.add(chrom)
-            ref2array = np.append(ref2array, row[3])
+            chrom2set.add(chrom) #Add the chromosome to a set
+            ref2array = np.append(ref2array, row[3]) #Add the VCF REF value (e.g. A, T, C, or G) to an array
+
             try:
-                qual2list.append(str(row[5]))
+                qual2list.append(str(row[5])) #Add the VCF QUAL score to a list.
+
             except Exception as e:
                 pass
-            alt2array = np.append(alt2array, row[4])
-            pos2array = np.append(pos2array , int(row[1]))
-            info2list += infofull.split(';')
+
+            alt2array = np.append(alt2array, row[4]) #Add the alt allele string (e.g. '[21:38498961[A') to a numpy array 
+            pos2array = np.append(pos2array , int(row[1])) #Add the VCF POS value to a numpy array
+            info2list += infofull.split(';') #Split the INFO string (e.g. 'CIEND=-196,196;CIPOS=-196,196;PE=5') then add to a list 
+
+
+    #This should always be true if things are working well. I don't know what type of situation would make this false.
     if len(strand1set) * len(strand2set) * len(chrom1set) * len(chrom2set) * len(pos1array)/len(pos2array) !=1:
-        print ("error")
+        print ("error") #If it is false, then alert that there is an error
+        
+        #If it is an error, then add the troublemaker rows from the vcf file to a .txt file named unresolved.txt
         with open('unresolved.txt', 'a') as rin:
             for row in v:
                 rin.writelines(','.join(map(str, v)) + "\n")
-        return (False, False)
-    chrom1 = ''.join(map(str, list(chrom1set)))
-    chrom2 = ''.join(map(str, list(chrom2set)))
-    strand1 = list(strand1set)[0]
-    strand2 = list(strand2set)[0]
-    svclass = sv_class(chrom1, strand1, chrom2, strand2)
-    svmethod = '_'.join(map(str, list(svcaller)))
-    svmethod = svmethod.replace("SANGER", "BRASS")
-    svinfo = ['SVCLASS='+ svclass, 'SVMETHOD=' + svmethod]
+        return (False, False) #Return False, False as the ultimate output of this function (instead of a VCF row)
+    
+
+    chrom1 = ''.join(map(str, list(chrom1set))) #Convert chrom1set to a list, then convert each element to a string. concat all elements directly next to each other
+    chrom2 = ''.join(map(str, list(chrom2set))) #Do the same thing for chr2
+    strand1 = list(strand1set)[0] #Convert strand1set to a list, then take only the first element of the list
+    strand2 = list(strand2set)[0] #Do the same thing for strand2set
+    svclass = sv_class(chrom1, strand1, chrom2, strand2) #This function will look at characteristics of the SV and define what class it is (e.g. 'TRA'). We already have this info in our bedpe
+    svmethod = '_'.join(map(str, list(svcaller))) #This will convert the stripped VCF ID column value (e.g. TRA00043279), convert to a list, convert to a string, then join them all together in a single string with a '_' sep
+    svmethod = svmethod.replace("SANGER", "BRASS") #If it says SANGER, then replace it with "BRASS"
+    svinfo = ['SVCLASS='+ svclass, 'SVMETHOD=' + svmethod] #Create two strings (the structure is something like 'SVCLASS=TRA' 'SVMETHOD=BRASS')
+    
     # check if all agree. Then take the call with the longest nt stretch in ALT
+    #This function will take a numpy array as input and will output a single index value
+    #The function will loop through the input numpy array, will calculate the 'itemsize' (number of bytes) and will store as a list.
+    #argmax() will output the index of the largest alt
+    #I'm really not sure why we do this
     def get_longest_alt(altarray):
         return np.array([i.itemsize for i in altarray]).argmax()
 
-    if ''.join(map(str, strand1set)) == '+':
-        pos1_index = pos1array.argmax()
-        mergepos1 = int(max(pos1array))
-    elif ''.join(map(str, strand1set)) == '-':
-        pos1_index = pos1array.argmin()
-        mergepos1 = int(min(pos1array))
-    if ''.join(map(str, strand2set)) == '+':
-        pos2_index = pos2array.argmax()
-        mergepos2 = int(max(pos2array))
-    elif ''.join(map(str, strand2set)) == '-':
-        pos2_index = pos2array.argmin()
-        mergepos2 = int(min(pos2array))
-    if len(list(set(pos1array))) == 1:
-        #print (pos1array)
-        pos1_index = get_longest_alt(alt1array)
-    if len(list(set(pos2array))) == 1:
-        #print (pos2array)
-        pos2_index = get_longest_alt(alt2array)
-    mergeref1 = ref1array[pos1_index]
-    mergealt1 = alt1array[pos2_index].replace('chr', '')
-    mergeref2 = ref2array[pos2_index]
-    mergealt2 = alt2array[pos2_index].replace('chr', '')
+    
+    if ''.join(map(str, strand1set)) == '+': #If strand1 is on the plus strand, then
+        pos1_index = pos1array.argmax() #Get the index of the largest value (in bytes) in pos1array
+        mergepos1 = int(max(pos1array)) #Calculate the maximum value in pos1array, then convert to int
+
+    elif ''.join(map(str, strand1set)) == '-': #If strand1 is on the minus strand, then
+        pos1_index = pos1array.argmin() #Get the index of the smallest value (in bytes) in pos1array
+        mergepos1 = int(min(pos1array)) #Get the minimum value in pos1array, then convert to int
+
+    if ''.join(map(str, strand2set)) == '+': #If strand2 is on the plus strand, then
+        pos2_index = pos2array.argmax() #Get the index of the largest value (in bytes) in pos2array
+        mergepos2 = int(max(pos2array)) #Calculate the maximum value in pos2array, then convert to int
+
+    elif ''.join(map(str, strand2set)) == '-': #If strand2 is on the minus strand, then
+        pos2_index = pos2array.argmin() #Get the index of the smallest value (in bytes) in pos2array
+        mergepos2 = int(min(pos2array)) #Calculate the minimum value in pos2array
+
+    
+    if len(list(set(pos1array))) == 1: #If there is only one unique element in pos1array, then
+        pos1_index = get_longest_alt(alt1array) #Get the index of the largest value (in bytes) in alt1array
+
+
+    if len(list(set(pos2array))) == 1: #If there is only one unique element in pos2array, then
+        pos2_index = get_longest_alt(alt2array) #Get the index of the largest value (in bytes) in alt2array
+
+    #I have no idea why we're doing this
+    mergeref1 = ref1array[pos1_index] #ref1array should be an array of bases (e.g A, T, C, G). Get the value at the index of the largest "ALT"
+    mergealt1 = alt1array[pos2_index].replace('chr', '') #subset alt1array to the value with the largest index in alt2array. Remove the 'chr' substring
+    mergeref2 = ref2array[pos2_index] #subset ref2array to only include the index with the largest value in alt2array
+    mergealt2 = alt2array[pos2_index].replace('chr', '') #Do something similar here
+
+    #Loop through all quality scores. Set the merge quality score to the max quality score
+    #If there are no int quality scores, then set the merge quality score to be equal to "."
     qual =  [int(i) for i in qual1list if i !='.']
     if qual:
         mergequal = max([int(i) for i in qual1list if i !='.'])
     else:
         mergequal = "."
-    readname_uniq = sorted(list(set(re.sub(r'/[12]', r'',i) for i in readnamelist)))
-    mergereadname = 'READ_ID=' + ','.join(map(str, readname_uniq))
-    key_remove= ['MATE','IMPRECISE','SOMATIC','SVMETHOD','SVCLASS','STRAND', 'PE', 'MATEID', 'MATEPOS', 'MATECHROM', 'MATESTRAND', 'MATEPOS', 'MATEMAPQ', 'SCTG', 'SPAN', 'TSPLIT','MAPQ', 'SVLEN', 'INSLEN', 'CONTROL']
+    
+
+    readname_uniq = sorted(list(set(re.sub(r'/[12]', r'',i) for i in readnamelist))) #Remove the trailing '1' and '2' from the strings, then return a sorted list of unique strings
+    mergereadname = 'READ_ID=' + ','.join(map(str, readname_uniq)) #Convert to a string that looks something like this "READ_ID=0,1,2"
+
+    #Take all of the stuff in info1 list, and remove all of the junk (defined in key_remove)
+    #Save this as a new list named merge1info_raw
+    key_remove= ['MATE','IMPRECISE','SOMATIC','SVMETHOD','SVCLASS','STRAND', 'PE', 'MATEID', 'MATEPOS', 'MATECHROM', 'MATESTRAND', 'MATEPOS', 'MATEMAPQ', 'SCTG', 'SPAN', 'TSPLIT','MAPQ', 'SVLEN', 'INSLEN', 'CONTROL'] #Define some terms (to remove?)
     merge1info_raw = list(set([i for i in info1list if not i.split('=')[0] in key_remove])) 
 
+    #Defining a function inside of a function. Why?
     def merge_field(mergeinfo_raw, svinfo):
         homseqs = list()
         mergeinfo_tmp = list()
@@ -386,18 +461,34 @@ def generate_vcf(cliqset, n):
         mergeinfo_tmp = mergeinfo_tmp + svinfo
         return mergeinfo_tmp
 
+    #Using the function above:
+    #1) Look for something called HOMSEQ in the INFO string, and if it exists, take the value associated with that entry and add to the 'homeseqs' list
+    #2) If you can't find HOMSEQ, then append the element from mergeinfo_raw to mergeinfo_tmp
+    #3) take mergeinfo_tmp (which shouldn't have a HOMSEQ value in it) and add the HOMSEQ value to the end.
+    #4) Add the sv info to the list. svinfo has this structure: [SVCLASS=TRA, SVMETHOD=BRASS]
     merge1info_raw = merge_field(merge1info_raw, svinfo)
+
+    #Create a list named mate1info that has more information about the chr, svid, strand, etc
+    #Then create a list with only one element. I believ this list is just a megastring for the INFO column
     mate1info = ['MATECHROM='+ chrom2, 'MATEPOS=' + str(mergepos2), 'MATEID=' + svid_2, 'STRAND=' + strand1, 'MATESTRAND='+strand2, 'PE=' + str(len(readname_uniq))]
     merge1info = [';'.join(map(str, sorted(merge1info_raw + mate1info) + [mergereadname]))]
+
+    #See above when merge_field() was invoked
     merge2info_raw = list(set([i for i in info2list if not i.split('=')[0] in key_remove]))
     merge2info_raw = merge_field(merge2info_raw, svinfo)
+
+    #Do something similar for mate2
     mate2info = ['MATECHROM='+ chrom1, 'MATEPOS=' + str(mergepos1), 'MATEID=' + svid_1, 'STRAND=' + strand2, 'MATESTRAND=' + strand1, 'PE=' + str(len(readname_uniq))]
     merge2info = [';'.join(map(str, sorted(merge2info_raw + mate2info) + [mergereadname]))]
+    
+    
     ##  CHROM         POS      REF        ALT
     ## mergechrom   mergepos mergeref   mergealt
     ## todo: extract all genotype info from all callers and merge
-    genotypecol = ['GT', '0/0', '0/1']
+    genotypecol = ['GT', '0/0', '0/1'] #Construct a list with genotype information
     ##
+
+    #Construct some lines in the "VCF" format, then return them outside of the function.
     pos1info = [chrom1, mergepos1, svid_1, mergeref1, mergealt1, mergequal, "PASS"]
     pos2info = [chrom2, mergepos2, svid_2, mergeref2, mergealt2, mergequal, "PASS"]
     vcf1line = pos1info + merge1info + genotypecol
@@ -423,7 +514,9 @@ def generate_bedpe(a):
     svclass = re.sub(r'.*;SVCLASS=([A-Za-z0-9]*).*', r'\1', a[7])
     svmethod = re.sub(r'.*;SVMETHOD=([A-Za-z0-9_]*);.*', r'\1', a[7])
     return [chrom1, start1, end1, chrom2, start2, end2, name, score, strand1, strand2, svclass, svmethod]
-'''
+
+
+
 
 # fopen = open('unresolved.txt', 'w')
 # fopen.close()
