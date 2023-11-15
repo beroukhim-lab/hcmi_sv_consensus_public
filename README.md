@@ -11,8 +11,8 @@ chrom1	start1	end1	chrom2	start2	end2	sv_id	tumreads	strand1	strand2	svclass	svm
 - Do NOT include 'chr' in your chromosome columns. We've tried adding error handling to bypass this, but best use would be to not include this prefix.
 
 ## Dependencies
-bedtools (for pairToPair) >= v.2.28.0
-Python dependencies (using python3): bgzip, pandas, pyvcf, matplotlib, networkx, numpy, os, re, sys
+- bedtools (for pairToPair) >= v.2.28.0
+- Python dependencies (using python3): bgzip, pandas, pyvcf, matplotlib, networkx, numpy, os, re, sys
 
 ## Running the code
 Sample test command: 
