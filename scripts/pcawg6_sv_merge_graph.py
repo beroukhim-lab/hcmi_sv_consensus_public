@@ -87,7 +87,7 @@ copyConc = 0
 priority=collections.defaultdict(float)
 
 # Overlap graph
-process_file_paths()
+# process_file_paths() # Debugging
 pid = os.path.basename(os.path.dirname(inBEDPE_overlap))
 G=networkx.Graph()
 # Parse bed file SV padding
@@ -126,26 +126,6 @@ for H in (G.subgraph(c) for c in nx.connected_components(G)): # connected_compon
     except Exception as e:
         pass
     baseName=  '_'.join(list(sample) + sorted(typeSet)) + '.' + str(conCompCount) + '_' + ';'.join(map(str, list(set(center)))) + '.png' 
-    
-    
-    '''
-    # This section was used in original code if plotSubgraph was provided as an arg, but it was not in bash, so I removed the arg
-    if plotSubgraph:
-        elarge=[(u,v) for (u,v,d) in H.edges(data=True) if d['weight'] >0.3]
-        esmall=[(u,v) for (u,v,d) in H.edges(data=True) if d['weight'] <=0.3]
-        pos=nx.circular_layout(H) # positions for all nodes
-        # nodes
-        centercolor = [i.replace('sanger', '#ADD8E6').replace('embl', '#90EE90').replace('dRanger', '#F0E68C').replace('smufin', '#800080').replace('snowman', '#FFA500') for i in center]
-
-        nx.draw_networkx_nodes(H,pos,node_size=700 , node_color=centercolor, font_family="arial")
-        # edges
-        weight = H.edges(data=True)[-1][2]['weight']
-        nx.draw_networkx_edges(H,pos,edgelist=elarge,
-                            width=2+4*weight)
-        nx.draw_networkx_edges(H,pos,edgelist=esmall,
-                            width=2+4*weight,alpha=0.5,edge_color='b',style='dashed')
-        plotGraph(H, baseName)
-    '''
     for n in H.nodes(data=False): ###I updated nodes_iter to nodes because the version of the python package I'm using changed nodes_iter -> nodes
          compAssign[n]=conCompCount
          compMembers[conCompCount].append(n)
@@ -185,15 +165,60 @@ for compID in compMembers.keys():
             insertPoint+=1
         outOrder=outOrder[:insertPoint] + [callX] + outOrder[insertPoint:]
     compMembers[compID]=outOrder
-    #print(compID, compMembers[compID])
-
-# ^ Things seem to be working above this point (or at least they're running, no clue if the output is as intended)
 
 ##########################################################
 # Part 2: Merge Calls
 # Original code read in VCF files into a hash table; did not merge due to formatting differences
 ##########################################################
 
+# Create a new function that should do the same thing as extract_vcf_rows, except by using a bedpe input
+def extract_bedpe_rows(single_bedpe, mastermerge, header_concat, compAssign):
+    with open(single_bedpe, 'rb') as rin:
+        # I removed headers in my bedpe tmp files for pairToPair --> manually assign header
+        header_concat.append("chrom1\tstart1\tend1\tchrom2\tstart2\tend2\tname\tqual\tstrand1\tstrand2\tsv_class\tsv_type\tscore\tsupp_reads\tscna\tcenter\tread_id\tcenter")
+        for f in rin:
+            row = f.decode("utf-8").split() # Byte string formatting was screwing up recognition below -- edited to resolve
+            # print(row)
+            rinfos = dict()
+            svid = row[6]
+            # print(svid)
+            if svid in compAssign:
+                cliqid = compAssign.get(svid)
+                mastermerge[cliqid].append(row)
+    return mastermerge, header_concat
+
+mastermerge = defaultdict(list)
+header_concat = list()
+for single_bedpe in inBEDPE_array:
+    # print(single_bedpe)
+    mastermerge, header_concat = extract_bedpe_rows(single_bedpe, mastermerge, header_concat, compAssign)
+
+# print(compAssign)
+
+'''
+###Debugging
+#Print mastermerge to see what it looks like
+print("This is the structure of mastermerge")
+num_entries_to_print = 5  # Number of entries you want to print
+
+# Iterating over the dictionary
+for i, (cliqid, bedpe_rows) in enumerate(mastermerge.items()):
+    print(f"Clique ID: {cliqid}")
+    for row in bedpe_rows:
+        print(row)
+    print("\n")  # Adding a new line for readability
+
+    # Break the loop after printing the desired number of entries
+    if i + 1 == num_entries_to_print:
+        break
+'''
+
+##########################################################
+# Part 3: Collapse clique sets to create consensus bedpe file
+# Perform some basic filtering to remove artifacts
+##########################################################
+'''
+### All of this is old code that Sean commented -- we can remove this in cleaned up version, but is kept here for now
 def read_orient(record):
     strands = ['NA', 'NA']
     if re.search(r'^[ACTGN]+\]',str(record)):
@@ -222,58 +247,6 @@ def sv_class(chrom1, strand1, chrom2, strand2):
             return 't2tINV'
         elif strand2 == "+":
             return "DUP"
-
-# Create a new function that should do the same thing as extract_vcf_rows, except by using a bedpe input
-def extract_bedpe_rows(single_bedpe, mastermerge, header_concat, compAssign):
-    # I had to remove headers in the .tmp files for pairToPair, but we'll want to make use of them here:
-    # print(compAssign)
-    with open(single_bedpe, 'rb') as rin:
-        # I removed headers in my bedpe tmp files for pairToPair --> manually assign header
-        header_concat.append("chrom1\tstart1\tend1\tchrom2\tstart2\tend2\tname\tqual\tstrand1\tstrand2\tsv_class\tsv_type\tscore\tsupp_reads\tscna\tcenter\tread_id\tcenter")
-        for f in rin:
-            row = f.decode("utf-8").split() # Byte string formatting was screwing up recognition below -- edited to resolve
-            rinfos = dict()
-            svid = row[6]
-            if svid in compAssign:
-                cliqid = compAssign.get(svid)
-                mastermerge[cliqid].append(row)
-    return mastermerge, header_concat
-
-'''
-mastermerge = defaultdict(list)
-header_concat = list()
-for inVCF in inVCF_DELLY, inVCF_BRASS, inVCF_DRANGER, inVCF_SNOWMAN:
-    mastermerge, header_concat = extract_vcf_rows(inVCF, mastermerge, header_concat, compAssign)
-'''
-
-mastermerge = defaultdict(list)
-header_concat = list()
-for single_bedpe in inBEDPE_array:
-    mastermerge, header_concat = extract_bedpe_rows(single_bedpe, mastermerge, header_concat, compAssign)
-
-'''
-###Debugging
-#Print mastermerge to see what it looks like
-print("This is the structure of mastermerge")
-num_entries_to_print = 5  # Number of entries you want to print
-
-# Iterating over the dictionary
-for i, (cliqid, bedpe_rows) in enumerate(mastermerge.items()):
-    print(f"Clique ID: {cliqid}")
-    for row in bedpe_rows:
-        print(row)
-    print("\n")  # Adding a new line for readability
-
-    # Break the loop after printing the desired number of entries
-    if i + 1 == num_entries_to_print:
-        break
-'''
-
-##########################################################
-# Part 3:
-
-##########################################################
-'''
 
 def generate_vcf(cliqset, n):
     
@@ -526,16 +499,15 @@ def generate_bedpe(a):
     return [chrom1, start1, end1, chrom2, start2, end2, name, score, strand1, strand2, svclass, svmethod] #Return a list with all of the info in the bedpe format
 '''
 
-#This function should replicate everything useful that the generate_vcf function does, except output bedpe format (like generate_bedpe does)
-#
-def generate_bedpe_new(input_cliq_bedpe): #Use mastermerge as input and output a collapsed bedpe
+# Replicates everything useful from original generate_vcf() function, except for bedpe format
+# Input: mastermerge
+# Output: collapsed bedpe with consensus SVs
+def generate_bedpe_new(input_cliq_bedpe):
     
-    output_bedpe=pd.DataFrame(columns=['chrom1', 'start1', 'end1', 'chrom2', 'start2', 'end2', 'sv_id', 'pe_support', 'strand1', 'strand2', 'sv_class', 'svmethod', 'center' ]) #This is the bedpe that will be output from this function
+    output_bedpe=pd.DataFrame(columns=['chrom1', 'start1', 'end1', 'chrom2', 'start2', 'end2', 'sv_id', 'pe_support', 'strand1', 'strand2', 'sv_class', 'svmethod', 'center' ]) 
 
     for key, sublist in input_cliq_bedpe.items():
-
-            #init some objects
-            #can rename later. for now I am naming them this way to make debugging less confusing for me.
+            # Init some objects
             new_chrom1_set=set()
             new_chrom2_set=set()
             new_strand1_set=set()
@@ -543,57 +515,57 @@ def generate_bedpe_new(input_cliq_bedpe): #Use mastermerge as input and output a
             new_svtype_set=set()
             new_start1_list=list()
             new_start2_list=list()
-            new_caller_set=set() #caller = the algorithms making the call. Note, in some cases one group uses multiple callers
-            new_center_set=set() #center = institute (e.g broad, nygc, etc)
-            new_qual_list=list() #Every group reports qual in a different way. Does anyone care about qual? Let's just assume that all groups pre-filter for their own qual threshold. I do not want to parse these strings.
+            new_caller_set=set() # caller = the algorithms making the call. Note, in some cases one group uses multiple callers
+            new_center_set=set() # center = institute (e.g broad, nygc, etc)
+            new_qual_list=list() # Every group reports qual in a different way. Does anyone care about qual? Let's just assume that all groups pre-filter for their own qual threshold. I do not want to parse these strings.
             new_id_list=list()
 
-            final_chrom1=None #This is the final chrom1 value for the output bedpe
-            final_chrom2=None #This is the final chrom2 value for the output bedpe
-            final_strand1=None #This is the final strand1 value for the output bedpe
-            final_strand2=None #This is the final strand2 value for the output bedpe
-            final_svtype=None #This is the final svtype for the output bedpe
-            final_start1=None #This is the final start1 position for the output bedpe
-            final_start2=None #This is the final start2 position for the output bedpe
-            final_end1=None #This is the final end1 value for the output bedpe
-            final_qual_string=None #This is the final qual string for the output bedpe, will be ";" sep and order will be same as final_center_string
-            final_caller_string=None #This is the final caller string for the output bedpe, will be ";" sep.
-            final_center_string=None #This is the final center string for the output bedpe, will be ";" sep and order will be the same as final_qual_string
-            final_id_string=None #This is a list of all SV IDs for the output bedpe, will be ";" sep.
-            final_bedpe_line=None #This is the final bedpe line (everything glued together) that will be output for each cliq
+            final_chrom1=None # This is the final chrom1 value for the output bedpe
+            final_chrom2=None # This is the final chrom2 value for the output bedpe
+            final_strand1=None # This is the final strand1 value for the output bedpe
+            final_strand2=None # This is the final strand2 value for the output bedpe
+            final_svtype=None # This is the final svtype for the output bedpe
+            final_start1=None # This is the final start1 position for the output bedpe
+            final_start2=None # This is the final start2 position for the output bedpe
+            final_end1=None # This is the final end1 value for the output bedpe
+            final_qual_string=None # This is the final qual string for the output bedpe, will be ";" sep and order will be same as final_center_string
+            final_caller_string=None # This is the final caller string for the output bedpe, will be ";" sep.
+            final_center_string=None # This is the final center string for the output bedpe, will be ";" sep and order will be the same as final_qual_string
+            final_id_string=None # This is a list of all SV IDs for the output bedpe, will be ";" sep.
+            final_bedpe_line=None # This is the final bedpe line (everything glued together) that will be output for each cliq
 
-            for item in sublist: #And for each sv call (one from each institution) for that cliq
+            for item in sublist: # For each sv call (one from each institution) for that cliq
 
-                #Add all of the chrom1 and chrom2 values to a set.
-                #We have downstream ambitions of checking to make sure for each cliq these values are always the same across all callers
-                #Do something similar for strand
-                #Also do something similar for sv type
-                new_chrom1_set.add(item[0]) #0 is the index of chrom1 in bedpe
-                new_chrom2_set.add(item[3]) #3 is the index of chrom2 in bedpe
-                new_strand1_set.add(item[8]) #8 is the index for strand1 in bedpe
-                new_strand2_set.add(item[9]) #9 is the index for strand2 in bedpe
-                new_svtype_set.add(item[10]) #10 is the index for sv type in bedpe
+                # Add all of the chrom1 and chrom2 values to a set.
+                # We have downstream ambitions of checking to make sure for each cliq these values are always the same across all callers
+                # Do something similar for strand
+                # Also do something similar for sv type
+                new_chrom1_set.add(item[0]) # 0 is the index of chrom1 in bedpe
+                new_chrom2_set.add(item[3]) # 3 is the index of chrom2 in bedpe
+                new_strand1_set.add(item[8]) # 8 is the index for strand1 in bedpe
+                new_strand2_set.add(item[9]) # 9 is the index for strand2 in bedpe
+                new_svtype_set.add(item[10]) # 10 is the index for sv type in bedpe
 
-                #Add all of the start1 and start2 values to a list
-                #We don't care about end1 and end2 because end1/2 == start1/2 +1, so we can just regenerate later.
-                new_start1_list.append(item[1]) #1 is the index for start1 in bedpe
-                new_start2_list.append(item[4]) #4 is the index for start2 in bedpe
+                # Add all of the start1 and start2 values to a list
+                # We don't care about end1 and end2 because end1/2 == start1/2 +1, so we can just regenerate later.
+                new_start1_list.append(item[1]) # 1 is the index for start1 in bedpe
+                new_start2_list.append(item[4]) # 4 is the index for start2 in bedpe
 
-                #Add all of the callers and centers to a set
-                new_caller_set.update(item[11].split(',')) #Sometimes a single group uses multiple callers. Add each indivudal caller to the set
-                new_center_set.add(item[12]) #This the index of the center (e.g. broad or nygc)
+                # Add all of the callers and centers to a set
+                new_caller_set.update(item[11].split(',')) # Sometimes a single group uses multiple callers. Add each indivudal caller to the set
+                new_center_set.add(item[12]) # This the index of the center (e.g. broad or nygc)
 
-                #Add all of the qual scores to a list
-                #Also add all of the sv IDs to a list
-                new_qual_list.append(item[7]) #7 is the inde of the qual score in bedpe
-                new_id_list.append(item[6]) #6 is the index of the SV ID in bedpe
+                # Add all of the qual scores to a list
+                # Also add all of the sv IDs to a list
+                new_qual_list.append(item[7]) # 7 is the inde of the qual score in bedpe
+                new_id_list.append(item[6]) # 6 is the index of the SV ID in bedpe
 
 
         
-            #Now that everything is assembled, calculate the values that will go into the actual bedpe
-            #We can write this in a more beautiful way in the future, for now writing it like this may help with debugging.
-            #to do: in the future just have it error and break if any of the elif conditions are met. Right now it is written this way for debugging purposes.
-            #First, chrom1
+            # Now that everything is assembled, calculate the values that will go into the actual bedpe
+            # We can write this in a more beautiful way in the future, for now writing it like this may help with debugging.
+            # to do: in the future just have it error and break if any of the elif conditions are met. Right now it is written this way for debugging purposes.
+            # First, chrom1
             if len(new_chrom1_set) == 1:
                 final_chrom1=new_chrom1_set.pop()
             elif len(new_chrom1_set) > 1:
@@ -601,7 +573,7 @@ def generate_bedpe_new(input_cliq_bedpe): #Use mastermerge as input and output a
             else:
                 final_chrom1="error_no_chrom1"
 
-            #Now chrom2
+            # Now chrom2
             if len(new_chrom2_set) == 1:
                 final_chrom2=new_chrom2_set.pop()
             elif len(new_chrom2_set) > 1:
@@ -609,7 +581,7 @@ def generate_bedpe_new(input_cliq_bedpe): #Use mastermerge as input and output a
             else:
                 final_chrom2="error_no_chrom2"
 
-            #Now for strand1
+            # Now for strand1
             if len(new_strand1_set) == 1:
                 final_strand1=new_strand1_set.pop()
             elif len(new_strand1_set) > 1:
@@ -617,7 +589,7 @@ def generate_bedpe_new(input_cliq_bedpe): #Use mastermerge as input and output a
             elif len(new_strand1_set) == 0:
                 final_strand1="error_no_strand1"
 
-            #Now for strand2
+            # Now for strand2
             if len(new_strand2_set) == 1:
                 final_strand2=new_strand2_set.pop()
             elif len(new_strand2_set) > 1:
@@ -625,7 +597,7 @@ def generate_bedpe_new(input_cliq_bedpe): #Use mastermerge as input and output a
             elif len(new_strand2_set) == 0:
                 final_strand2="error_no_strand2"
 
-            #Now for sv type
+            # Now for sv type
             if len(new_svtype_set) == 1:
                 final_svtype=new_svtype_set.pop()
             elif len(new_svtype_set) > 1:
@@ -633,7 +605,7 @@ def generate_bedpe_new(input_cliq_bedpe): #Use mastermerge as input and output a
             elif len(new_svtype_set) == 0:
                 final_svtype="error_no_svtype"
 
-            #Calculate the position values using the same logic as the original generate_vcf function
+            # Calculate the position values using the same logic as the original generate_vcf function
             if final_strand1 == '+':
                 final_start1=max(new_start1_list)
                 final_end1=int(final_start1)+1
@@ -648,67 +620,37 @@ def generate_bedpe_new(input_cliq_bedpe): #Use mastermerge as input and output a
                 final_start2=min(new_start2_list)
                 final_end2=int(final_start2)-1
 
-            #Construct a string for qual, caller, center, and id
+            # Construct a string for qual, caller, center, and id
             final_qual_string=';'.join(new_qual_list)
             final_caller_string=';'.join(new_caller_set)
             final_center_string=';'.join(new_center_set)
             final_id_string=';'.join(new_id_list)
 
-            #Generate a final bedpe line with all of the information above
+            # Generate a final bedpe line with all of the information above
             final_bedpe_line=[final_chrom1, final_start1, final_end1, final_chrom2, final_start2, final_end2, final_id_string, final_qual_string, final_strand1, final_strand2, final_svtype, final_caller_string, final_center_string]
 
-            #Add it to a pandas dataframe
+            # Add it to a pandas dataframe
             output_bedpe.loc[len(output_bedpe)] = final_bedpe_line
 
     #Now return the bedpe :)
     return output_bedpe
 
 
-collapsed_bedpe=generate_bedpe_new(mastermerge)
-            
+collapsed_bedpe = generate_bedpe_new(mastermerge)
 
-'''
-# fopen = open('unresolved.txt', 'w')
-# fopen.close()
-# vcflines = list()
-bedpelines = list()
-n = 0
-for k, v in mastermerge.items():
-    #print (k)
-    if k:
-        bedpelines = [*bedpelines, *v] # TO SELF: COME BACK TO THIS SECTION <- Not sure yet if this works (idea is to just concatenate bedpe lines in cliques)
-        # n +=1
-        # print(v)
-        # print(n)
-        # a,b = generate_vcf(v, n)
-        # # print(a)
-        # if a and b:
-        #     vcflines.append(a)
-        #     vcflines.append(b)
-        #     bedpe = generate_bedpe(a)
-        #     bedpelines.append(bedpe)
+# Debugging  
+# print("This is the structure of the final collapsed bedpe")
+# pd.set_option('display.max_columns', None)
+# print(collapsed_bedpe.head())
+# exit()
 
-print(bedpelines)
-
-'''
-
-
-# vcflines.sort(key = lambda x: (x[0], int(x[1])))
-#collapsed_bedpe.sort(key = lambda x: (x[0], int(x[1]))) #Comment this out. Sorting is for cowards.
-
-print("This is the structure of the final collapsed bedpe")
-pd.set_option('display.max_columns', None)
-print(collapsed_bedpe.head())
-
-
-
-## Search for high number of small SVs - likely artefacts
-collapsed_bedpe['sv_class'] = collapsed_bedpe['sv_class'].str.replace('h2h', '').str.replace('t2t', '') #Rewrite for pandas df input
-statCounterTmp = Counter(collapsed_bedpe['sv_class']) #Rewrite for pandas df input
+# Search for high number of small SVs - likely artifacts
+collapsed_bedpe['sv_class'] = collapsed_bedpe['sv_class'].str.replace('h2h', '').str.replace('t2t', '') # Rewrite for pandas df input
+statCounterTmp = Counter(collapsed_bedpe['sv_class']) # Rewrite for pandas df input
 #statCounterTmp = Counter([i[10].replace('h2h', '').replace('t2t', '') for i in collapsed_bedpe]) #In a string like 'h2hINV' remove the h2h so it is only INV
 statCounter = dict() 
-bins=[0, 5e3, 1e12] #Where did these numbers come from?
-sumSVs= sum(statCounterTmp.values()) #Count the number of times each type of sv class was observed
+bins=[0, 5e3, 1e12] # Where did these numbers come from?
+sumSVs= sum(statCounterTmp.values()) # Count the number of times each type of sv class was observed
 
 
 for k,v in statCounterTmp.items():
@@ -821,116 +763,3 @@ else:
 '''
 
 print ("merged SVs into BEDPE format\n", collapsed_bedpe, "\n\n")
-
-
-
-####################################################################################################
-## HEADER
-####################################################################################################
-# fileformat
-
-#####For now just comment this out. Do we even need to write a vcf output?
-'''
-merge_header = list()
-fileformat = ["##fileformat=VCFv4.1"] #Edit this
-filedate = ["##fileDate=" + today] #Edit this
-codesource = ["##pcawg6_sv_merge=brass(Sanger),delly(EMBL),dranger(Broad),snowman(Broad)"] #Edit this  
-genomeref = ["##reference=hs37d5,ftp://ftp.sanger.ac.uk/pub/project/PanCancer/"] #Edit this
-merge_header += [fileformat]
-merge_header += [filedate]
-merge_header += [genomeref]
-merge_header += [codesource]
-header_clean = [list(j) for j in set(tuple(i) for i in header_concat) if not '##fileformat' in j[0] and not '##fileDate' in j[0] and not '##reference' in j[0] and not '##source' in j[0]]
-header_clean.sort()
-formats = list()
-filters = list()
-infos = list()
-alts = list()
-chroms = list()
-headermisc = list()
-for h in header_clean:
-    hstring = ' '.join(map(str, h))
-    if h[0].startswith("##FORMAT"):
-        formats.append(h)
-    elif h[0].startswith("##FILTER"):
-        filters.append(h)
-    elif h[0].startswith("##INFO"):
-        infos.append(h)
-    elif h[0].startswith("##ALT"):
-        alts.append(h)
-    elif h[0].startswith("#CHROM"):
-        chroms.append(h)
-    else:
-        headermisc.append(h)
-chromline = chroms[0][:9] + ['NORMAL', 'TUMOUR']
-
-info_dict = defaultdict(list)
-infos_pruned = list()
-for i in infos:
-    k = re.sub(r'##INFO=<ID=([^,]*)(.*)', r'\1', i[0]) 
-    info_dict[k].append(i)
-for k, v in info_dict.iteritems():
-    # always take the longest string
-    vprune = sorted(v, key=len)[-1]
-    infos_pruned.append(vprune)
-
-filter_dict = defaultdict(list)
-filters_pruned = list()
-for i in filters:
-    k = re.sub(r'##FILTER=<ID=([^,]*)(.*)', r'\1', i[0]) 
-    filter_dict[k].append(i)
-for k, v in filter_dict.iteritems():
-    # always take the longest string
-    vprune = sorted(v, key=len)[-1]
-    filters_pruned.append(vprune)
-
-format_dict = defaultdict(list)
-formats_pruned = list()
-for i in formats:
-    k = re.sub(r'##FORMAT=([^,]*)(.*)', r'\1', i[0]) 
-    format_dict[k].append(i)
-for k, v in format_dict.iteritems():
-    # always take the longest string
-    vprune = sorted(v, key=len)[-1]
-    formats_pruned.append(vprune)
-
-
-headermisc_dict = defaultdict(list)
-headermisc_pruned = list()
-for i in headermisc:
-    k = re.sub(r'##contig=<ID=([^,]*),(.*)', r'\1', i[0])
-    headermisc_dict[k].append(i)
-for k, v in headermisc_dict.iteritems():
-    # always take the longest string
-    vprune = sorted(v, key=len)[-1]
-    headermisc_pruned.append(vprune)
-
-headermisc_pruned.sort()
-
-merge_header += headermisc_pruned
-merge_header += infos_pruned
-merge_header += filters_pruned
-merge_header += formats_pruned
-merge_header += alts
-
-# merge_header.append(chromline)
-
-def write_vcf(outVCF, vcflines):
-    with open(outVCF, 'w') as vcfout:
-        for row in merge_header:
-            row = ' '.join(map(str, row)) + "\n"
-            vcfout.writelines(row )
-        row = '\t'.join(map(str, chromline)) + "\n"
-        vcfout.writelines(row)
-        for vcfline in vcflines:
-            row = '\t'.join(map(str, vcfline)) + "\n"
-            vcfout.writelines(row)
-    print ("merged SV VCF file\n", outVCF, "\n\n")
-
-
-if vcflines_filter:
-    write_vcf(outVCF.replace('.vcf', '_raw.vcf'), vcflines)
-    write_vcf(outVCF, vcflines_filter)
-else:
-    write_vcf(outVCF, vcflines)
-'''

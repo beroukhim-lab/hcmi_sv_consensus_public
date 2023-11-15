@@ -1,11 +1,5 @@
 #!/bin/bash
 
-# Original code: pcawg6_sv_merge_master.sh <run_id> <dranger_symlink> <snowman_symlink> <brass_symlink> <delly_symlink>
-
-# Possible new code: optimizing_sv_consensus.sh -a <run_id> -o <output_directory> -i <[bedpe_file_path_array]>
-# In our case, people are providing a varying number of bedpe files (for diff projects) and they could be created from various callers
-# Let's change the code so that the bedpe files are passed as an array and the last argument so this is dynamic
-
 if [[ $# -lt 1 ]]; then
     echo "You must pass one of the following combinations of parameters (-h) or (-a, -o, -i, AND -n)" >&2
     exit 1
@@ -53,27 +47,33 @@ while getopts ":a:o:i:n:h:s" var; do
 done
 
 echo -e "\n## 1)\tSETUP FOR PROCESSING\n" # Print the status to the terminal
+echo "SETUP FOR PROCESSING" >> $log_file
 
-# Create a new directory for the sample of interest
+# Create a new directory for the sample of interest and tmp subdirectory
 mkdir -m 777 ${output_directory}
+mkdir -m 777 ${output_directory}/tmp
+tmp_directory="${output_directory}/tmp"
 log_file=${output_directory}/${aliquot_id}.log
 
-#Make a log file
-# touch $aliquot_id.log
+# Make a log file
 echo "Log file for running SV consensus on $aliquot_id" >> $log_file #Add the sample name to the log file
 echo $(date '+%Y-%m-%d') >> $log_file #Add the date to the log file
 
-#Echo the information and add to the log file
+# Echo the information and add to the log file
 echo "Files will be output to $output_directory" | tee -a $log_file #Add the output directory to the log file
 
-#Print all of the input paths and add to the log file
+# Print all of the input paths and add to the log file
+# Error checking: remove any ^M instances in file to prevent issues downstream from Windows vs Linux use
 counter1=1
 for file in "${bedpe_files[@]}"; do
+    center=${caller_name_array[counter1 - 1]} 
     echo "Bedpe file number $counter1 in the array is $file" | tee -a $log_file 
+    sed -e "s/\r//g" $file > ${tmp_directory}/$aliquot_id.$center.m_removal
+    sed '2,$s/chr//g' ${tmp_directory}/$aliquot_id.$center.m_removal > ${tmp_directory}/$aliquot_id.$center.chr_removal
     let counter1++
 done
 
-#Print all of the caller names and add to the log file
+# Print all of the caller names and add to the log file
 counter2=1
 for caller in "${caller_name_array[@]}"; do
     echo "Caller number $counter2 is named $caller" | tee -a $log_file
@@ -85,46 +85,24 @@ if [ $counter1 -ne $counter2 ]; then
     exit 1
 fi
 
-
-# TODO: Figure out relevance of the below variables/files and edit to not hardcode later (we can create paths in github repo)
-VARIANT_DIR="${output_directory}/sv_call_concordance" #This appears to be just an output directory that will be created later?
-BLACKLIST_DIR="data/blacklist_files/"
-CCDSGENE="${BLACKLIST_DIR}/ccdsGene.bed.gz" #A path to a blacklist file (to be used later in this script?)
-PCAWG_QC="data/PCAWG-QC_Summary-of-Measures.tsv" #A data file (no clue what it is for)
-pcawg_dataset="data/pcawg_release_mar2016.tsv" #A PCAWG dataset (should be in docker container? no idea what it is for)
-
-# TODO: Are there blacklisted regions for our projects? We should figure out how these regions were determined/how to handle accordingly
-# Emailed Seongmin and he suggested this may help remove false positives but A) groups may have internally done this B) not sure if this is commonly done anymore -- should we keep??
-# back in black...
-#PCAWG6_DATA_DIR="${ETC_PCAWG6_DIR}/data" #This is the base PCAWG data directory
-BLACKLIST_BEDPE="${BLACKLIST_DIR}/pcawg6_blacklist.slop.bedpe.gz" #A path to a blacklist file (to be used later in this script?)
-BLACKLIST_BED="${BLACKLIST_DIR}/pcawg6_blacklist.slop.bed.gz" #A path to a blacklist file (to be used later in this script?)
-BLACKLIST_TE_BEDPE="${BLACKLIST_DIR}/pcawg6_blacklist_TE_pseudogene.bedpe.gz" #A path to a blacklist file (to be used later in this script?)
-BLACKLIST_TE_INS="${BLACKLIST_DIR}/pcawg6_blacklist_TE_pseudogene_insertion.txt.gz" #A path to a blacklist file (to be used later in this script?)
-BLACKLIST_ALIQUOT_ID="${BLACKLIST_DIR}/blacklist_aliquot_id.txt" #A path to a blacklist file (to be used later in this script?)
-BLACKLIST_FOLDBACK="${BLACKLIST_DIR}/pcawg6_blacklist_foldback_artefacts.slop.bedpe.gz" #A path to a blacklist file (to be used later in this script?)
-BLACKLIST_ALIQUOT_DIR="${output_directory}/blacklisted" #A path to a directory that will be created later?
-#Ah, yes. Such premonition. If the blacklist directory doesn't exist, then make it.
-if [[ ! -d ${BLACKLIST_ALIQUOT_DIR} ]]
-then
-mkdir $BLACKLIST_ALIQUOT_DIR
-fi
-
 # There used to be code here to convert the inputs from vcf -> bedpe. We already have everything in bedpe format, so it was deleted
 
 #####################################################################
 # Merge bedpe files into one large file (aka 'master file')
 #####################################################################
 
-echo -e "\n## 2)\tCOMBINE BEDPE SV CALLS\n" # Print the status to the terminal
+echo -e "\n## 2)\tCOMBINE BEDPE SV CALLS\n"
+echo "COMBINE BEDPE SV CALLS" >> $log_file
 
 #Add a "center" column to the bedpe. This will be necessary for merge_reorder_pairs.py because this script counts the number of times each center is seen.
 i=0
+
 for file in "${bedpe_files[@]}"; do
     center=${caller_name_array[i]} 
-    temp_file=$file.tmp
-    awk -v val="$center" 'BEGIN {OFS = "\t"} FNR==1{a="center"} FNR>1{a=val} {print $0"\t"a}' $file | grep -v chrom1 > $temp_file
-    # mv $temp_file $file
+    in_temp_file=${tmp_directory}/$aliquot_id.$center.chr_removal
+    temp_file=${tmp_directory}/$aliquot_id.$center.tmp
+    tmp_bedpe_files+=($temp_file)
+    awk -v val="$center" 'BEGIN {OFS = "\t"} FNR==1{a="center"} FNR>1{a=val} {print $0"\t"a}' $in_temp_file | grep -v chrom1 > $temp_file
     let i++
 done
 
@@ -138,20 +116,22 @@ touch ${SV_MASTER}
 
 # Since we have a variable number of bedpe files, let's just append them all at once
 i=1
-for file in "${bedpe_files[@]}"; do
+for file in "${tmp_bedpe_files[@]}"; do
     echo $file
+    # center=${caller_name_array[i-1]} 
+    # temp_file=${tmp_directory}/$aliquot_id.$center.tmp
     if [ $i -ne 1 ]
     then
-        tail -n +2 $file.tmp >> $SV_ORIG
+        tail -n +2 $file >> $SV_ORIG
         let i++
     else
-        cat $file.tmp >> $SV_ORIG
+        cat $file >> $SV_ORIG
         let i++
     fi
 done
 
-sed '2,$s/chr//g' $SV_ORIG > $SV_ORIG.tmp
-mv $SV_ORIG.tmp $SV_ORIG
+# sed '2,$s/chr//g' $SV_ORIG > $SV_ORIG.tmp
+# mv $SV_ORIG.tmp $SV_ORIG
 
 # Sort, save unique lines, remove header (which contains chrom1 string), and save updated file
 sort -k1,1V $SV_ORIG | uniq | grep -v chrom1 >> $SV_MASTER
@@ -163,7 +143,6 @@ echo -e "\n$SV_MASTER" | tee -a $log_file
 # Pair SVs and find overlaps between bedpe files
 # Dependency: bedtools pairToPair
 #####################################################################
-
 # Variable definition
 PAIR2PAIR=${output_directory}/pair2pair_SV_merging.bed # Output file path
 echo -n "" > $PAIR2PAIR # Create empty file
@@ -174,16 +153,18 @@ echo -n "" > $PAIR2PAIR # Create empty file
 ## -rdn = require hits to have diff names
 ## -a and -b = input bedpe files; -a = master, -b = institution
 SLOP=400
-
-for file in "${bedpe_files[@]}"; do
-    pairToPair -slop $SLOP -rdn -a ${SV_MASTER} -b <(awk -v aliquot_id=$aliquot_id '{print $0"\t"aliquot_id}' $file.tmp)  >> $PAIR2PAIR
+i=0
+for file in "${tmp_bedpe_files[@]}"; do
+    # center=${caller_name_array[i]} 
+    # temp_file=${tmp_directory}/$aliquot_id.$center.tmp
+    pairToPair -slop $SLOP -rdn -a ${SV_MASTER} -b <(awk -v aliquot_id=$aliquot_id '{print $0"\t"aliquot_id}' $file)  >> $PAIR2PAIR
+    let i++
 done
 
 #####################################################################
 # Make SV overlap for each SV in pair2pair
 # Prepare special data frame format to load into graph algorithm
 #####################################################################
-
 inBEDPE=${output_directory}/${aliquot_id}_SV_overlap.txt
 python3 scripts/pcawg_merge_reorder_pairs.py $PAIR2PAIR $aliquot_id > ${inBEDPE}
 
@@ -191,21 +172,15 @@ python3 scripts/pcawg_merge_reorder_pairs.py $PAIR2PAIR $aliquot_id > ${inBEDPE}
 # #############	  Merge and get cliques of SVs 	    #################
 # #####################################################################
 echo -e "\n## 3)\tMERGE SVs\n"
+echo "MERGE SVs" >> $log_file
 
 outBEDPE=${output_directory}/${aliquot_id}.somatic.sv.bedpe
 outSTAT=${outBEDPE/.bedpe/.stat}
 
-#cd ./test_bedpe #TODO: hard coded, update later.
-
-###########Should be working up to this point.
-########### TODO: Update this python script to accept the bedpe files as input.
-########### TODO: Fix hard coding in python script so that it accepts any number of bedpe files and isn't just looking for these specific ones
-
-#python2 scripts/pcawg6_sv_merge_graph.py -e ${inBEDPE} -o ${outVCF} -s ${outSTAT} -a $SANGER_ANNO_VCF -b $DELLY_ANNO_VCF -c $DRANGER_ANNO_VCF -d $SNOWMAN_ANNO_VCF | tee -a $log #OG versions
-# bedpe_files_tmp=("${bedpe_files[@")
-bedpe_python_input_array=$(IFS=" " ; echo "${bedpe_files[@]/%/.tmp}") # Convert the array of bedpe files to a space-separated string to make it easier to use as a python argument
+bedpe_python_input_array=$(IFS=" " ; echo "${tmp_bedpe_files[@]}") # Convert the array of bedpe files to a space-separated string to make it easier to use as a python argument
 python3 scripts/pcawg6_sv_merge_graph.py -e ${inBEDPE} -z "$bedpe_python_input_array" -o ${outBEDPE} -s ${outSTAT} | tee -a $log
 
+echo "DONE" >> $log_file
 exit 0
 
 
@@ -213,6 +188,31 @@ exit 0
 # #####################################################################
 # ##############    RNA/GERMLINE BLACKLIST  REMOVAL   #################
 # #####################################################################
+
+# # TODO: Figure out relevance of the below variables/files and edit to not hardcode later (we can create paths in github repo)
+# VARIANT_DIR="${output_directory}/sv_call_concordance" #This appears to be just an output directory that will be created later?
+# BLACKLIST_DIR="data/blacklist_files/"
+# CCDSGENE="${BLACKLIST_DIR}/ccdsGene.bed.gz" #A path to a blacklist file (to be used later in this script?)
+# PCAWG_QC="data/PCAWG-QC_Summary-of-Measures.tsv" #A data file (no clue what it is for)
+# pcawg_dataset="data/pcawg_release_mar2016.tsv" #A PCAWG dataset (should be in docker container? no idea what it is for)
+
+# # TODO: Are there blacklisted regions for our projects? We should figure out how these regions were determined/how to handle accordingly
+# # Emailed Seongmin and he suggested this may help remove false positives but A) groups may have internally done this B) not sure if this is commonly done anymore -- should we keep??
+# # back in black...
+# #PCAWG6_DATA_DIR="${ETC_PCAWG6_DIR}/data" #This is the base PCAWG data directory
+# BLACKLIST_BEDPE="${BLACKLIST_DIR}/pcawg6_blacklist.slop.bedpe.gz" #A path to a blacklist file (to be used later in this script?)
+# BLACKLIST_BED="${BLACKLIST_DIR}/pcawg6_blacklist.slop.bed.gz" #A path to a blacklist file (to be used later in this script?)
+# BLACKLIST_TE_BEDPE="${BLACKLIST_DIR}/pcawg6_blacklist_TE_pseudogene.bedpe.gz" #A path to a blacklist file (to be used later in this script?)
+# BLACKLIST_TE_INS="${BLACKLIST_DIR}/pcawg6_blacklist_TE_pseudogene_insertion.txt.gz" #A path to a blacklist file (to be used later in this script?)
+# BLACKLIST_ALIQUOT_ID="${BLACKLIST_DIR}/blacklist_aliquot_id.txt" #A path to a blacklist file (to be used later in this script?)
+# BLACKLIST_FOLDBACK="${BLACKLIST_DIR}/pcawg6_blacklist_foldback_artefacts.slop.bedpe.gz" #A path to a blacklist file (to be used later in this script?)
+# BLACKLIST_ALIQUOT_DIR="${output_directory}/blacklisted" #A path to a directory that will be created later?
+# #Ah, yes. Such premonition. If the blacklist directory doesn't exist, then make it.
+# if [[ ! -d ${BLACKLIST_ALIQUOT_DIR} ]]
+# then
+# mkdir $BLACKLIST_ALIQUOT_DIR
+# fi
+
 #echo -e "\n\tREMOVE BLACKLIST\n"
 
 #BLACKLIST_SV_ID=${aliquot_id}.blacklist_svid.txt
