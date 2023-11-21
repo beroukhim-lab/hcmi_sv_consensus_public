@@ -12,3 +12,18 @@ COMBINE BEDPE SV CALLS
 ./test_output_CTSP-ACY8-TTP1-A/sortedMasterSvList.bedpe
 MERGE SVs
 DONE
+SETUP FOR PROCESSING
+Log file for running SV consensus on CTSP-ACY8-TTP1-A
+2023-11-20
+Files will be output to ./test_output_CTSP-ACY8-TTP1-A
+Bedpe file number 0 in the array is ./test_bedpe/CTSP-ACY8-TTP1-A-1-1-D-A889-36_broad.bedpe
+Bedpe file number 1 in the array is ./test_bedpe/CTSP-ACY8-TTP1-A-1-1-D-A889-36_mskcc.bedpe
+Bedpe file number 2 in the array is ./test_bedpe/CTSP-ACY8-TTP1-A-1-1-D-A889-36_nygc.bedpe
+Caller number 0 is named broad
+Caller number 1 is named mskcc
+Caller number 2 is named nygc
+COMBINE BEDPE SV CALLS
+
+./test_output_CTSP-ACY8-TTP1-A/sortedMasterSvList.bedpe
+MERGE SVs
+DONE
